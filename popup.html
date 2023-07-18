@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Record Actions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .button-container>*:not(:last-child) {
+            margin-right: 16px;
+        }
+
+        .start-icon:before {
+            content: "\f04b";
+        }
+
+        .pause-icon:before {
+            content: "\f04c";
+        }
+
+        .stop-icon:before {
+            content: "\f04d";
+        }
+
+        .not-select-button {
+            color: #808080;
+        }
+
+        .select-button {
+            transition: color 0.2s;
+        }
+
+        .select-button:active {
+            color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="button-container">
+        <i class="fas fa-play start-icon select-button"></i>
+        <i class="fas fa-pause pause-icon select-button" style="display: none;"></i>
+        <i class="fas fa-play stop-icon select-button not-select-button"></i>
+    </div>
+    <script src="storage.js"></script>
+    <script src="content.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>
