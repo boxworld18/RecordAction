@@ -11,6 +11,8 @@ startIcon.addEventListener("click", () => {
 
     if (!isRunning) {
         stopIcon.style.color = "black";
+        stopIcon.classList.remove("disabled");
+        stopIcon.classList.add("selected");
         chrome.runtime.sendMessage({
             type: "startRecording"
         });
@@ -38,6 +40,8 @@ stopIcon.addEventListener("click", () => {
     if (isRunning) {
         stopIcon.style.display = "inline-block";
         stopIcon.style.color = "grey";
+        stopIcon.classList.remove("selected");
+        stopIcon.classList.add("disabled");
         chrome.runtime.sendMessage({
             type: "stopRecording"
         });
@@ -53,26 +57,36 @@ stopIcon.addEventListener("click", () => {
 });
 
 // Reset state of the extension when the popup is opened
-window.onload = function setStorage() {
-    getFromStorage("status").then(function (status) {
+window.onload = () => {
+    getFromStorage("status").then((status) => {
         if (status == 0) {
             startIcon.style.display = "inline-block";
             pauseIcon.style.display = "none";
             stopIcon.style.color = "grey";
             isRunning = false;
             isPaused = false;
-        } else if (status == 1) {
-            startIcon.style.display = "none";
-            pauseIcon.style.display = "inline-block";
-            stopIcon.style.color = "black";
+        } else {
+            if (status < 0 || status > 2) return;
+
+            if (stopIcon.classList.contains("disabled")) {
+                stopIcon.classList.remove("disabled");
+                stopIcon.classList.add("selected");
+            }
+
+            if (status == 1) {
+                startIcon.style.display = "none";
+                pauseIcon.style.display = "inline-block";
+                stopIcon.style.color = "black";
+                isPaused = false;
+            } else if (status == 2) {
+                startIcon.style.display = "inline-block";
+                pauseIcon.style.display = "none";
+                stopIcon.style.color = "black";
+                isPaused = true;
+            }
+
             isRunning = true;
-            isPaused = false;
-        } else if (status == 2) {
-            startIcon.style.display = "inline-block";
-            pauseIcon.style.display = "none";
-            stopIcon.style.color = "black";
-            isRunning = true;
-            isPaused = true;
+
         }
     });
 }

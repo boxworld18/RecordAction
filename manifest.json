@@ -24,12 +24,13 @@
         }
     ],
     "permissions": [
-        "activeTab",
         "tabs",
-        "scripting",
-        "background",
-        "notifications",
+        "activeTab",
         "storage",
-        "unlimitedStorage"
+        "unlimitedStorage",
+        "webNavigation",
+        "notifications",
+        "scripting",
+        "background"
     ]
 }

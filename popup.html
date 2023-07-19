@@ -28,25 +28,21 @@
             content: "\f04d";
         }
 
-        .not-select-button {
+        .disabled {
             color: #808080;
         }
 
-        .select-button {
-            transition: color 0.2s;
-        }
-
-        .select-button:active {
-            color: #0056b3;
+        .selected:hover {
+            color: #0056b3 !important;
         }
     </style>
 </head>
 
 <body>
     <div class="button-container">
-        <i class="fas fa-play start-icon select-button"></i>
-        <i class="fas fa-pause pause-icon select-button" style="display: none;"></i>
-        <i class="fas fa-play stop-icon select-button not-select-button"></i>
+        <i class="fas fa-play start-icon selected"></i>
+        <i class="fas fa-pause pause-icon selected" style="display: none;"></i>
+        <i class="fas fa-play stop-icon disabled"></i>
     </div>
     <script src="storage.js"></script>
     <script src="content.js"></script>
