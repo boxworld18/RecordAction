@@ -9,7 +9,6 @@ try {
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Chrome ext: ->  extension started");
     saveToStorage("status", 0);
-    sendResponse({status: "ok"});
 });
 
 // chrome.webNavigation.onCompleted.addListener((details) => {
