@@ -5,10 +5,25 @@ const stopIcon = document.querySelector(".stop-icon");
 let isRunning = false;
 let isPaused = false;
 
+function updateTabStatus(state) {
+    if (state < 0 || state > 2) return;
+    chrome.tabs.query({
+        active: true
+    }, (tabs) => {
+        tabs.forEach((tab) => {
+            chrome.tabs.sendMessage(tab.id, {
+                type: "updateStatus",
+                status: state
+            });
+        });
+    });
+}
+
 startIcon.addEventListener("click", () => {
     startIcon.style.display = "none";
     pauseIcon.style.display = "inline-block";
 
+    updateTabStatus(1);
     if (!isRunning) {
         stopIcon.style.color = "black";
         stopIcon.classList.remove("disabled");
@@ -29,6 +44,7 @@ pauseIcon.addEventListener("click", () => {
     pauseIcon.style.display = "none";
     startIcon.style.display = "inline-block";
 
+    updateTabStatus(2);
     chrome.runtime.sendMessage({
         type: "pauseRecording"
     });
@@ -42,6 +58,8 @@ stopIcon.addEventListener("click", () => {
         stopIcon.style.color = "grey";
         stopIcon.classList.remove("selected");
         stopIcon.classList.add("disabled");
+
+        updateTabStatus(0);
         chrome.runtime.sendMessage({
             type: "stopRecording"
         });
@@ -59,6 +77,7 @@ stopIcon.addEventListener("click", () => {
 // Reset state of the extension when the popup is opened
 window.onload = () => {
     getFromStorage("status").then((status) => {
+        updateTabStatus(status);
         if (status == 0) {
             startIcon.style.display = "inline-block";
             pauseIcon.style.display = "none";
@@ -86,7 +105,6 @@ window.onload = () => {
             }
 
             isRunning = true;
-
         }
     });
 }

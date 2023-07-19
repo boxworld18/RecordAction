@@ -11,19 +11,6 @@ chrome.runtime.onInstalled.addListener(() => {
     saveToStorage("status", 0);
 });
 
-// chrome.webNavigation.onCompleted.addListener((details) => {
-//     console.log(details);
-//     // console.log({
-//     //     type: 'basic',
-//     //     title: 'page loaded',
-//     //     message: 'Completed loading: ' +
-//     //         details.url +
-//     //         ' at ' +
-//     //         details.timeStamp +
-//     //         ' milliseconds since the epoch.'
-//     // });
-// });
-
 // Status change listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type == "startRecording" || message.type == "continueRecording") {
