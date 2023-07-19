@@ -1,5 +1,3 @@
-let isRecording = false;
-
 let observer = new MutationObserver(
     (mutationList) => setListeners()
 );
@@ -59,6 +57,7 @@ function processClickEvent(event) {
     obj.textContent = event.target.textContent;
     obj.value = event.target.value;
     obj.xpath = getXPath(event.target);
+    obj.url = document.URL;
 
     chrome.runtime.sendMessage({
         type: obj
@@ -71,6 +70,20 @@ function processChangeEvent(event) {
     obj.tagName = event.target.tagName.toLowerCase(); // todo: selector
     obj.value = event.target.value;
     obj.xpath = getXPath(event.target);
+    obj.url = document.URL;
+    
+    chrome.runtime.sendMessage({
+        type: obj
+    });
+}
+
+function processKeyEvent(event) {
+    if (event.code !== "Enter") return;
+
+    let obj = {};
+    obj.name = event.key;
+    obj.type = event.type;
+    obj.code = event.code;
 
     chrome.runtime.sendMessage({
         type: obj
@@ -78,19 +91,21 @@ function processChangeEvent(event) {
 }
 
 function setListeners() {
-    chrome.runtime.sendMessage({
-        type: "listener status -> " + isRecording.toString()
+    getFromStorage('status').then((status) => {
+        if (status != 1) return;
+        removeListeners();
+        document.body.addEventListener('click', processClickEvent);
+        document.body.addEventListener('change', processChangeEvent);
+        document.body.addEventListener('keydown', processKeyEvent);
+        document.body.addEventListener('keyup', processKeyEvent);
     });
-    if (!isRecording) return;
-    document.body.removeEventListener('click', processClickEvent);
-    document.body.removeEventListener('change', processChangeEvent);
-    document.body.addEventListener('click', processClickEvent);
-    document.body.addEventListener('change', processChangeEvent);
 }
 
 function removeListeners() {
     document.body.removeEventListener('click', processClickEvent);
     document.body.removeEventListener('change', processChangeEvent);
+    document.body.removeEventListener('keydown', processKeyEvent);
+    document.body.removeEventListener('keyup', processKeyEvent);
 }
 
 // Listen for messages from the extension
@@ -98,11 +113,9 @@ chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
         if (message.type == "updateStatus") {
             if (message.status == 1) {
-                isRecording = true;
                 console.log('hi - true');
                 setListeners();
             } else {
-                isRecording = false
                 console.log('hi - false');
                 removeListeners();
             }

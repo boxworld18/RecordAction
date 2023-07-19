@@ -1,6 +1,6 @@
 {
     "name": "Record Actions",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "manifest_version": 3,
     "description": "A Chrome extension to record user actions.",
     "action": {
@@ -31,6 +31,7 @@
         "webNavigation",
         "notifications",
         "scripting",
-        "background"
+        "background",
+        "nativeMessaging"
     ]
 }

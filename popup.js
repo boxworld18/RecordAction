@@ -6,7 +6,6 @@ let isRunning = false;
 let isPaused = false;
 
 function updateTabStatus(state) {
-    if (state < 0 || state > 2) return;
     chrome.tabs.query({
         active: true
     }, (tabs) => {
