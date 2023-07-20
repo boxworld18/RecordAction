@@ -32,6 +32,7 @@
         "notifications",
         "scripting",
         "background",
+        "downloads",
         "nativeMessaging"
     ]
 }

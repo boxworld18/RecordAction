@@ -13,7 +13,7 @@ observer.observe(document.body, config);
 
 function getXPath(element) {
     var xpath = '';
-    while (element) {
+    while (!(element == undefined)) {
         // Find the element's index within its parent
         if (element.id !== '') {
             xpath = '//*[@id="' + element.id + '"]' + xpath;
@@ -54,13 +54,18 @@ function processClickEvent(event) {
     let obj = {};
     obj.type = event.type;
     obj.tagName = event.target.tagName.toLowerCase();
-    obj.textContent = event.target.textContent;
-    obj.value = event.target.value;
+    obj.text = event.target.text;
+    obj.innerText = event.target.innerText;
     obj.xpath = getXPath(event.target);
     obj.url = document.URL;
 
+    // remove leading and trailing spaces
+    if (!(obj.text === undefined))
+        obj.text = obj.text.trim();
+
     chrome.runtime.sendMessage({
-        type: obj
+        type: 'event',
+        event: obj
     });
 }
 
@@ -73,12 +78,13 @@ function processChangeEvent(event) {
     obj.url = document.URL;
     
     chrome.runtime.sendMessage({
-        type: obj
+        type: 'event',
+        event: obj
     });
 }
 
 function processKeyEvent(event) {
-    if (event.code !== "Enter") return;
+    if (event.code !== 'Enter') return;
 
     let obj = {};
     obj.name = event.key;
@@ -86,7 +92,30 @@ function processKeyEvent(event) {
     obj.code = event.code;
 
     chrome.runtime.sendMessage({
-        type: obj
+        type: 'event',
+        event: obj
+    });
+}
+
+function getDomain(url) {
+    var domain = url.replace(/[\w-:]*\/\//, '').split(/[/?#]/)[0];
+    return domain;
+}
+
+function processNavigateEvent(event) {
+    var src_url = document.URL;
+    var dst_url = event.destination.url;
+
+    // both urls have same domain
+    if (getDomain(src_url) === getDomain(dst_url)) return;
+
+    let obj = {};
+    obj.type = event.type;
+    obj.url = dst_url;
+
+    chrome.runtime.sendMessage({
+        type: 'event',
+        event: obj
     });
 }
 
@@ -98,6 +127,7 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
+        navigation.addEventListener('navigate', processNavigateEvent);
     });
 }
 
@@ -106,12 +136,13 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
+    navigation.removeEventListener('navigate', processNavigateEvent);
 }
 
 // Listen for messages from the extension
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
-        if (message.type == "updateStatus") {
+        if (message.type == 'updateStatus') {
             if (message.status == 1) {
                 console.log('hi - true');
                 setListeners();

@@ -1,6 +1,7 @@
 const startIcon = document.querySelector(".start-icon");
 const pauseIcon = document.querySelector(".pause-icon");
 const stopIcon = document.querySelector(".stop-icon");
+const saveIcon = document.querySelector(".save-icon");
 
 let isRunning = false;
 let isPaused = false;
@@ -27,6 +28,8 @@ startIcon.addEventListener("click", () => {
         stopIcon.style.color = "black";
         stopIcon.classList.remove("disabled");
         stopIcon.classList.add("selected");
+        saveIcon.classList.remove("selected");
+        saveIcon.classList.add("disabled");
         chrome.runtime.sendMessage({
             type: "startRecording"
         });
@@ -57,6 +60,8 @@ stopIcon.addEventListener("click", () => {
         stopIcon.style.color = "grey";
         stopIcon.classList.remove("selected");
         stopIcon.classList.add("disabled");
+        saveIcon.classList.remove("disabled");
+        saveIcon.classList.add("selected");
 
         updateTabStatus(0);
         chrome.runtime.sendMessage({
@@ -70,6 +75,14 @@ stopIcon.addEventListener("click", () => {
 
         isRunning = false;
         isPaused = false;
+    }
+});
+
+saveIcon.addEventListener("click", () => {
+    if (!isRunning) {
+        chrome.runtime.sendMessage({
+            type: "save"
+        });
     }
 });
 
@@ -89,6 +102,8 @@ window.onload = () => {
             if (stopIcon.classList.contains("disabled")) {
                 stopIcon.classList.remove("disabled");
                 stopIcon.classList.add("selected");
+                saveIcon.classList.remove("selected");
+                saveIcon.classList.add("disabled");
             }
 
             if (status == 1) {
