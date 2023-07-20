@@ -26,25 +26,32 @@ function getXPath(element) {
             break;
         }
 
+        const parent = element.parentNode;
+
+        // Element is 'root'
+        if (parent == undefined) {
+            xpath = '/' + element.tagName.toLowerCase() + xpath;
+            break;
+        }
+
         var isFound = false;
-        var needIx = 0;
+        var totIx = 0;
         var ix = 0;
 
-        var siblings = element.parentNode.childNodes;
-        siblings.forEach((sibling) => {
+        parent.childNodes.forEach((sibling) => {
             if (sibling === element)
                 isFound = true;
             if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
                 if (isFound === false) ix++;
-                needIx++;
+                totIx++;
             }
         });
 
-        var suffix = ((needIx > 1) ? '[' + (ix + 1) + ']' : '');
+        var suffix = ((totIx > 1) ? '[' + (ix + 1) + ']' : '');
         xpath = '/' + element.tagName.toLowerCase() + suffix + xpath;
 
         // iterate parent node
-        element = element.parentNode;
+        element = parent;
     }
 
     return 'xpath/' + xpath;
@@ -58,6 +65,7 @@ function processClickEvent(event) {
     obj.innerText = event.target.innerText;
     obj.xpath = getXPath(event.target);
     obj.url = document.URL;
+    obj.html = document.documentElement.outerHTML;
 
     // remove leading and trailing spaces
     if (!(obj.text === undefined))
@@ -76,6 +84,7 @@ function processChangeEvent(event) {
     obj.value = event.target.value;
     obj.xpath = getXPath(event.target);
     obj.url = document.URL;
+    obj.html = document.documentElement.outerHTML;
     
     chrome.runtime.sendMessage({
         type: 'event',
@@ -112,6 +121,7 @@ function processNavigateEvent(event) {
     let obj = {};
     obj.type = event.type;
     obj.url = dst_url;
+    obj.html = document.documentElement.outerHTML;
 
     chrome.runtime.sendMessage({
         type: 'event',
