@@ -61,9 +61,18 @@ function processClickEvent(event) {
     let obj = {};
     obj.type = event.type;
     obj.tagName = event.target.tagName.toLowerCase();
+
+    // remove useless click events
+    if (obj.tagName == 'div') return;
+
     obj.text = event.target.text;
     obj.innerText = event.target.innerText;
     obj.xpath = getXPath(event.target);
+    obj.pointer = {
+        x: event.clientX,
+        y: event.clientY
+    };
+    obj.bounding = event.target.getBoundingClientRect();
     obj.url = document.URL;
     obj.html = document.documentElement.outerHTML;
 
@@ -83,9 +92,14 @@ function processChangeEvent(event) {
     obj.tagName = event.target.tagName.toLowerCase(); // todo: selector
     obj.value = event.target.value;
     obj.xpath = getXPath(event.target);
+    obj.pointer = {
+        x: event.clientX,
+        y: event.clientY
+    };
+    obj.bounding = event.target.getBoundingClientRect();
     obj.url = document.URL;
     obj.html = document.documentElement.outerHTML;
-    
+
     chrome.runtime.sendMessage({
         type: 'event',
         event: obj
@@ -99,6 +113,22 @@ function processKeyEvent(event) {
     obj.name = event.key;
     obj.type = event.type;
     obj.code = event.code;
+
+    chrome.runtime.sendMessage({
+        type: 'event',
+        event: obj
+    });
+}
+
+function processScrollEvent(event) {
+    let obj = {};
+    obj.type = event.type;
+
+    // last scroll position
+    obj.scrollTop = document.documentElement.scrollTop;
+    obj.scrollLeft = document.documentElement.scrollLeft;
+    obj.url = document.URL;
+    // obj.html = document.documentElement.outerHTML;
 
     chrome.runtime.sendMessage({
         type: 'event',
@@ -137,6 +167,8 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
+        // document.addEventListener('scroll', processScrollEvent);
+        document.addEventListener('scrollend', processScrollEvent);
         navigation.addEventListener('navigate', processNavigateEvent);
     });
 }
@@ -146,6 +178,8 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
+    // document.removeEventListener('scroll', processScrollEvent);
+    document.removeEventListener('scrollend', processScrollEvent);
     navigation.removeEventListener('navigate', processNavigateEvent);
 }
 

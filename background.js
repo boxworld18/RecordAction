@@ -34,6 +34,21 @@ function getUrlPrefix(url) {
     return prefix;
 }
 
+// declare the function
+function downloadAsDataURL(url) {
+    return new Promise((resolve, reject) => {
+        fetch(url)
+            .then(res => res.blob())
+            .then(blob => {
+                const reader = new FileReader()
+                reader.readAsDataURL(blob)
+                reader.onloadend = () => resolve(reader.result)
+                reader.onerror = err => reject(err)
+            })
+            .catch(err => reject(err))
+    })
+}
+
 // Status change listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type == "startRecording" || message.type == "continueRecording") {
@@ -84,21 +99,57 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
 
         reader.readAsDataURL(blob);
-
-
         console.log(`Saving events to file ${filename}`);
-        // sendResponse({
-        //     content: jsonse,
-        //     filename: filename
-        // });
 
     } else if (message.type == "event") {
         const obj = message.event;
         const url = obj.url;
+        const eType = obj.type;
         // remove chrome extension events
         if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
+
+        // keep only the last scrollend event for each url
+        var lastObj = {};
+        if (eventArray.length)
+            lastObj = eventArray[eventArray.length - 1];
+        
+        if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type)
+            eventArray.pop();
+        
+        // add screenshot
+        if (eType !== "scrollend") {
+            chrome.tabs.captureVisibleTab((dataUri) => {
+                obj.screenshot = dataUri;
+            });
+        }
+
         eventArray.push(obj);
-        console.log(obj);
+
+        // display events in console
+        if (eType !== "scrollend") {
+            if (lastObj.type == "scrollend")
+                console.log(lastObj);
+            console.log(obj);
+        }
+
+    } else if (message.type == "capture") {
+        chrome.tabs.captureVisibleTab((dataUri) => {
+            downloadAsDataURL(dataUri)
+            .then((res) => {
+                console.log(`Window captured!`);
+                console.log(dataUri);
+                console.log(res);
+                chrome.downloads.download({
+                    url: res,
+                    filename: 'test.jpg',
+                    saveAs: false,
+                    conflictAction: 'overwrite'
+                });
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+        });
     } else {
         console.log(message.type);
     }

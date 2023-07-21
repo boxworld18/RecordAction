@@ -86,6 +86,13 @@ saveIcon.addEventListener("click", () => {
     }
 });
 
+const testIcon = document.querySelector(".test-icon");
+testIcon.addEventListener("click", () => {
+    chrome.runtime.sendMessage({
+        type: "capture"
+    });
+});
+
 // Reset state of the extension when the popup is opened
 window.onload = () => {
     getFromStorage("status").then((status) => {
