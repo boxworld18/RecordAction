@@ -1,7 +1,9 @@
+/* Button */
 const startIcon = document.querySelector(".start-icon");
 const pauseIcon = document.querySelector(".pause-icon");
 const stopIcon = document.querySelector(".stop-icon");
 const saveIcon = document.querySelector(".save-icon");
+const cameraIcon = document.querySelector(".camera-icon");
 
 let isRunning = false;
 let isPaused = false;
@@ -86,12 +88,30 @@ saveIcon.addEventListener("click", () => {
     }
 });
 
-const testIcon = document.querySelector(".test-icon");
-testIcon.addEventListener("click", () => {
+cameraIcon.addEventListener("click", () => {
     chrome.runtime.sendMessage({
         type: "capture"
     });
 });
+
+/* Input */
+const input = document.querySelector('input[type="text"]');
+input.addEventListener('change', () => {
+    const text = input.value;
+    chrome.runtime.sendMessage({
+        type: "updateText",
+        text: text
+    });
+});
+
+cameraIcon.addEventListener("click", () => {
+    const text = input.value;
+    chrome.runtime.sendMessage({
+        type: "updateText",
+        text: text
+    });
+});
+
 
 // Reset state of the extension when the popup is opened
 window.onload = () => {

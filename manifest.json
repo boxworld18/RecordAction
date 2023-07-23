@@ -1,6 +1,6 @@
 {
     "name": "Record Actions",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "manifest_version": 3,
     "description": "A Chrome extension to record user actions.",
     "action": {
@@ -36,6 +36,7 @@
         "nativeMessaging"
     ],
     "host_permissions": [
-        "<all_urls>"
+        "<all_urls>",
+        "*://*/*"
     ]
 }

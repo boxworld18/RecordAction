@@ -7,6 +7,7 @@ try {
 
 let timestamp = '--NO-TIMESTAMP--';
 let eventArray = [];
+let userTarget = '';
 
 // Extension initialization
 chrome.runtime.onInstalled.addListener(() => {
@@ -81,7 +82,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         saveToStorage("events", eventArray);
 
     } else if (message.type == "save") {
-        const jsonse = JSON.stringify(eventArray);
+        const object = {
+            target: userTarget,
+            action: eventArray,
+            timestamp: timestamp
+        }
+        const jsonse = JSON.stringify(object);
         const filename = `recact_${timestamp}.json`;
         const reader = new FileReader();
         const blob = new Blob([jsonse], {
@@ -150,6 +156,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 console.error(err)
             })
         });
+    } else if (message.type == "updateText") {
+        userTarget = message.text;
+        console.log(`User target: ${userTarget}`);
     } else {
         console.log(message.type);
     }

@@ -63,7 +63,7 @@ function processClickEvent(event) {
     obj.tagName = event.target.tagName.toLowerCase();
 
     // remove useless click events
-    if (obj.tagName == 'div') return;
+    // if (obj.tagName == 'div') return;
 
     obj.text = event.target.text;
     obj.innerText = event.target.innerText;
