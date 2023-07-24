@@ -57,25 +57,38 @@ function getXPath(element) {
     return 'xpath/' + xpath;
 }
 
-function processClickEvent(event) {
+function basicInfo(event) {
     let obj = {};
     obj.type = event.type;
+    obj.windowView = {
+        x: window.scrollX,
+        y: window.scrollY
+    };
+    obj.url = document.URL;
+
+    return obj;
+}
+
+function commonInfo(event) {
+    let obj = basicInfo(event);
+    
     obj.tagName = event.target.tagName.toLowerCase();
-
-    // remove useless click events
-    // if (obj.tagName == 'div') return;
-
-    obj.text = event.target.text;
-    obj.innerText = event.target.innerText;
     obj.xpath = getXPath(event.target);
     obj.pointer = {
         x: event.clientX,
         y: event.clientY
     };
     obj.bounding = event.target.getBoundingClientRect();
-    obj.url = document.URL;
+    
     obj.html = document.documentElement.outerHTML;
+    return obj;
+}
 
+function processClickEvent(event) {
+    let obj = commonInfo(event);
+    obj.text = event.target.text;
+    obj.innerText = event.target.innerText;
+    
     // remove leading and trailing spaces
     if (!(obj.text === undefined))
         obj.text = obj.text.trim();
@@ -87,18 +100,8 @@ function processClickEvent(event) {
 }
 
 function processChangeEvent(event) {
-    let obj = {};
-    obj.type = event.type;
-    obj.tagName = event.target.tagName.toLowerCase(); // todo: selector
+    let obj = commonInfo(event);
     obj.value = event.target.value;
-    obj.xpath = getXPath(event.target);
-    obj.pointer = {
-        x: event.clientX,
-        y: event.clientY
-    };
-    obj.bounding = event.target.getBoundingClientRect();
-    obj.url = document.URL;
-    obj.html = document.documentElement.outerHTML;
 
     chrome.runtime.sendMessage({
         type: 'event',
@@ -121,15 +124,8 @@ function processKeyEvent(event) {
 }
 
 function processScrollEvent(event) {
-    let obj = {};
-    obj.type = event.type;
-
-    // last scroll position
-    obj.scrollTop = document.documentElement.scrollTop;
-    obj.scrollLeft = document.documentElement.scrollLeft;
-    obj.url = document.URL;
-    // obj.html = document.documentElement.outerHTML;
-
+    let obj = basicInfo(event);
+    
     chrome.runtime.sendMessage({
         type: 'event',
         event: obj
@@ -159,6 +155,19 @@ function processNavigateEvent(event) {
     });
 }
 
+function processResizeEvent(event) {
+    let obj = basicInfo(event);
+    obj.windowSize = {
+        x: window.innerWidth,
+        y: window.innerHeight
+    };
+
+    chrome.runtime.sendMessage({
+        type: 'event',
+        event: obj
+    });
+}
+
 function setListeners() {
     getFromStorage('status').then((status) => {
         if (status != 1) return;
@@ -170,6 +179,7 @@ function setListeners() {
         // document.addEventListener('scroll', processScrollEvent);
         document.addEventListener('scrollend', processScrollEvent);
         navigation.addEventListener('navigate', processNavigateEvent);
+        window.addEventListener('resize', processResizeEvent);
     });
 }
 
@@ -181,19 +191,17 @@ function removeListeners() {
     // document.removeEventListener('scroll', processScrollEvent);
     document.removeEventListener('scrollend', processScrollEvent);
     navigation.removeEventListener('navigate', processNavigateEvent);
+    window.removeEventListener('resize', processResizeEvent);
 }
 
 // Listen for messages from the extension
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
         if (message.type == 'updateStatus') {
-            if (message.status == 1) {
-                console.log('hi - true');
+            if (message.status == 1)
                 setListeners();
-            } else {
-                console.log('hi - false');
+            else
                 removeListeners();
-            }
             console.log(message.status);
         }
         return true;

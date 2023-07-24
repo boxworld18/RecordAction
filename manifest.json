@@ -34,10 +34,10 @@
         "background",
         "downloads",
         "nativeMessaging",
-        "tabCapture"
+        "tabCapture",
+        "sidePanel"
     ],
     "host_permissions": [
-        "<all_urls>",
-        "*://*/*"
+        "<all_urls>"
     ]
 }

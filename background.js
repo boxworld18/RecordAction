@@ -5,9 +5,21 @@ try {
     console.log(e);
 }
 
+// Record data
 let timestamp = '--NO-TIMESTAMP--';
 let eventArray = [];
 let userTarget = '';
+
+// Screenshot parameters
+let windowSizeX = 1280;
+let windowSizeY = 900;
+let lastEventPosX = 0;
+let lastEventPosY = 0;
+let lastCapture = 0;
+let captureInterval = 1000;
+
+// Sleep function
+const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleeping"));
 
 // Extension initialization
 chrome.runtime.onInstalled.addListener(() => {
@@ -88,28 +100,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // remove chrome extension events
             if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
 
-            // keep only the last scrollend event for each url
-            var lastObj = {};
+            // last move
+            var lastObj = {
+                type: "undefined"
+            };
+
             if (eventArray.length)
                 lastObj = eventArray[eventArray.length - 1];
 
-            if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type)
+            // remove duplicate events
+            if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type) {
+                if (Math.abs(obj.windowView.x - lastEventPosX) * 3 < windowSizeX
+                    && Math.abs(obj.windowView.y - lastEventPosY) * 3 < windowSizeY)
+                    break;
+            }
+
+            if (eType == "resize" && eType == lastObj.type) {
+                windowSizeX = obj.windowSize.x;
+                windowSizeY = obj.windowSize.y;
                 eventArray.pop();
+            }
 
             // add screenshot
-            if (eType !== "scrollend") {
-                chrome.tabs.captureVisibleTab((dataUri) => {
-                    obj.screenshot = dataUri;
+            var waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 0);
+            console.log(`waitTime: ${waitTime}`);
+            if (eType !== "resize" && eType !== "scroll") {
+                // for normal event, wait for captureInterval and then capture screenshot
+                sleep(waitTime).then(() => {
+                    chrome.tabs.captureVisibleTab((dataUri) => {
+                        obj.screenshot = dataUri;
+                    });
+                    lastCapture = Date.now();
+                    console.log('window captured');
                 });
+            } else {
+                // for duplicate scroll events, capture screenshot immediately
+                if (waitTime <= 0) {
+                    chrome.tabs.captureVisibleTab((dataUri) => {
+                        obj.screenshot = dataUri;
+                    });
+                    lastCapture = Date.now();
+                    console.log('window captured');
+                }
             }
 
             eventArray.push(obj);
 
             // display events in console
-            if (eType !== "scrollend") {
-                if (lastObj.type == "scrollend")
+            if (eType !== "resize") {
+                if (lastObj.type == "resize")
                     console.log(lastObj);
                 console.log(obj);
+                lastEventPosX = obj.posX;
+                lastEventPosY = obj.posY;
             }
             break;
 

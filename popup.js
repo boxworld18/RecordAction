@@ -118,6 +118,23 @@ videoIcon.addEventListener("click", () => {
                 streamId: id
             });
 
+            const extensionId = chrome.runtime.id;
+            var url = `chrome-extension://${extensionId}/recorder.html`
+            chrome.tabs.query({}, (tabs) => {
+                tabs.forEach((tab) => {
+                    chrome.runtime.sendMessage({
+                        type: `URL: ${tab.url}`,
+                    });
+
+                    if (tab.url == url) {
+                        chrome.tabs.sendMessage(tab.id, {
+                            type: "videoCapture",
+                            streamId: id
+                        });
+                    }
+                });
+            });
+
         });
     });
 
