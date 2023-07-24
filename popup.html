@@ -52,6 +52,10 @@
             content: "\f1d8";
         }
 
+        .video-icon:before {
+            content: "\f03d";
+        }
+
         .disabled {
             color: #808080;
         }
@@ -68,7 +72,8 @@
         <i class="fas fa-pause pause-icon selected" style="display: none;"></i>
         <i class="fas fa-play stop-icon disabled"></i>
         <i class="fas fa-floppy-o save-icon selected"></i>
-        <i class="fas fa-camera camera-icon selected"></i>
+        <i class="fas fa-camera camera-icon disabled"></i>
+        <i class="fas fa-video video-icon disabled"></i>
     </div>
     <div class="input-container">
         <input type="text" placeholder="Your target is...">

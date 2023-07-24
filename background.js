@@ -52,115 +52,129 @@ function downloadAsDataURL(url) {
 
 // Status change listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type == "startRecording" || message.type == "continueRecording") {
-        saveToStorage("status", 1);
-        // chrome.action.setIcon({
-        //     path: "icon_rec.png"
-        // });
-        console.log("Recording started");
-
-        // update timestamp if it's a new recording
-        if (message.type == "startRecording") {
+    switch (message.type) {
+        /// Basic Functions
+        /// Start, pause, stop recording and monitor events
+        case "startRecording":
+            // update timestamp if it's a new recording
             timestamp = getTimeStamp();
             eventArray = [];
-        }
+        case "continueRecording":
+            saveToStorage("status", 1);
+            // chrome.action.setIcon({
+            //     path: "icon_rec.png"
+            // });
+            console.log("Recording started");
+            break;
+        case "pauseRecording":
+            saveToStorage("status", 2);
+            // chrome.action.setIcon({
+            //     path: "icon_pause.png"
+            // });
+            console.log("Pause recording");
+            break;
+        case "stopRecording":
+            saveToStorage("status", 0);
+            // chrome.action.setIcon({
+            //     path: "icon.png"
+            // });
+            console.log("Recording stopped");
+            break;
 
-    } else if (message.type == "pauseRecording") {
-        saveToStorage("status", 2);
-        // chrome.action.setIcon({
-        //     path: "icon_pause.png"
-        // });
-        console.log("Pause recording");
-    } else if (message.type == "stopRecording") {
-        saveToStorage("status", 0);
-        // chrome.action.setIcon({
-        //     path: "icon.png"
-        // });
-        console.log("Recording stopped");
+        case "event":
+            const obj = message.event;
+            const url = obj.url;
+            const eType = obj.type;
+            // remove chrome extension events
+            if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
 
-        // save events to file
-        saveToStorage("events", eventArray);
+            // keep only the last scrollend event for each url
+            var lastObj = {};
+            if (eventArray.length)
+                lastObj = eventArray[eventArray.length - 1];
 
-    } else if (message.type == "save") {
-        const object = {
-            target: userTarget,
-            action: eventArray,
-            timestamp: timestamp
-        }
-        const jsonse = JSON.stringify(object);
-        const filename = `recact_${timestamp}.json`;
-        const reader = new FileReader();
-        const blob = new Blob([jsonse], {
-            type: "application/json"
-        });
+            if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type)
+                eventArray.pop();
 
-        reader.onload = function () {
-            const url = reader.result;
-            chrome.downloads.download({
-                url: url,
-                filename: filename,
-                saveAs: false,
-                conflictAction: 'overwrite'
+            // add screenshot
+            if (eType !== "scrollend") {
+                chrome.tabs.captureVisibleTab((dataUri) => {
+                    obj.screenshot = dataUri;
+                });
+            }
+
+            eventArray.push(obj);
+
+            // display events in console
+            if (eType !== "scrollend") {
+                if (lastObj.type == "scrollend")
+                    console.log(lastObj);
+                console.log(obj);
+            }
+            break;
+
+        /// Useful Functions
+        /// Save events to file, update user target
+        case "save":
+            const object = {
+                target: userTarget,
+                action: eventArray,
+                timestamp: timestamp
+            }
+            const jsonse = JSON.stringify(object);
+            const filename = `recact_${timestamp}.json`;
+            const reader = new FileReader();
+            const blob = new Blob([jsonse], {
+                type: "application/json"
             });
-        };
 
-        reader.readAsDataURL(blob);
-        console.log(`Saving events to file ${filename}`);
-
-    } else if (message.type == "event") {
-        const obj = message.event;
-        const url = obj.url;
-        const eType = obj.type;
-        // remove chrome extension events
-        if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
-
-        // keep only the last scrollend event for each url
-        var lastObj = {};
-        if (eventArray.length)
-            lastObj = eventArray[eventArray.length - 1];
-        
-        if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type)
-            eventArray.pop();
-        
-        // add screenshot
-        if (eType !== "scrollend") {
-            chrome.tabs.captureVisibleTab((dataUri) => {
-                obj.screenshot = dataUri;
-            });
-        }
-
-        eventArray.push(obj);
-
-        // display events in console
-        if (eType !== "scrollend") {
-            if (lastObj.type == "scrollend")
-                console.log(lastObj);
-            console.log(obj);
-        }
-
-    } else if (message.type == "capture") {
-        chrome.tabs.captureVisibleTab((dataUri) => {
-            downloadAsDataURL(dataUri)
-            .then((res) => {
-                console.log(`Window captured!`);
-                console.log(dataUri);
-                console.log(res);
+            reader.onload = function () {
+                const url = reader.result;
                 chrome.downloads.download({
-                    url: res,
-                    filename: 'test.jpg',
+                    url: url,
+                    filename: filename,
                     saveAs: false,
                     conflictAction: 'overwrite'
                 });
-            })
-            .catch((err) => {
-                console.error(err)
-            })
-        });
-    } else if (message.type == "updateText") {
-        userTarget = message.text;
-        console.log(`User target: ${userTarget}`);
-    } else {
-        console.log(message.type);
+            };
+
+            reader.readAsDataURL(blob);
+            console.log(`Saving events to file ${filename}`);
+            break;
+
+        case "updateText":
+            userTarget = message.text;
+            console.log(`User target: ${userTarget}`);
+            break;
+
+        /// Temporary Functions
+        /// screen capture
+        case "capture":
+            chrome.tabs.captureVisibleTab((dataUri) => {
+                downloadAsDataURL(dataUri)
+                    .then((res) => {
+                        console.log(`Window captured!`);
+                        console.log(dataUri);
+                        console.log(res);
+                        chrome.downloads.download({
+                            url: res,
+                            filename: 'test.jpg',
+                            saveAs: false,
+                            conflictAction: 'overwrite'
+                        });
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                    })
+            });
+            break;
+
+        case "videoCapture":
+            console.log(`Video capture started, stream id: ${message.streamId}`);
+            break;
+
+        default:
+            console.log(message.type);
     }
 
     return true;

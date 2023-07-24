@@ -1,9 +1,11 @@
-/* Button */
+/* Function Bar */
 const startIcon = document.querySelector(".start-icon");
 const pauseIcon = document.querySelector(".pause-icon");
 const stopIcon = document.querySelector(".stop-icon");
 const saveIcon = document.querySelector(".save-icon");
 const cameraIcon = document.querySelector(".camera-icon");
+const videoIcon = document.querySelector(".video-icon");
+const sendIcon = document.querySelector(".send-icon");
 
 let isRunning = false;
 let isPaused = false;
@@ -89,12 +91,39 @@ saveIcon.addEventListener("click", () => {
 });
 
 cameraIcon.addEventListener("click", () => {
+    if (cameraIcon.classList.contains("disabled")) return;
     chrome.runtime.sendMessage({
         type: "capture"
     });
 });
 
-/* Input */
+videoIcon.addEventListener("click", () => {
+    if (videoIcon.classList.contains("disabled")) return;
+    chrome.windows.create({
+        url: chrome.runtime.getURL("recorder.html"),
+        focused: false
+    });
+
+    chrome.tabs.query({
+        active: true,
+        currentWindow: true
+    }, (tabs) => {
+        var tabId = tabs[0].id;
+        // Get the stream id of the tab
+        chrome.tabCapture.getMediaStreamId({
+            targetTabId: tabId
+        }, (id) => {
+            chrome.runtime.sendMessage({
+                type: "videoCapture",
+                streamId: id
+            });
+
+        });
+    });
+
+});
+
+/* Input Bar */
 const input = document.querySelector('input[type="text"]');
 input.addEventListener('change', () => {
     const text = input.value;
@@ -104,14 +133,13 @@ input.addEventListener('change', () => {
     });
 });
 
-cameraIcon.addEventListener("click", () => {
+sendIcon.addEventListener("click", () => {
     const text = input.value;
     chrome.runtime.sendMessage({
         type: "updateText",
         text: text
     });
 });
-
 
 // Reset state of the extension when the popup is opened
 window.onload = () => {
