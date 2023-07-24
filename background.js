@@ -25,6 +25,7 @@ const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleepin
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Chrome ext: ->  extension started");
     saveToStorage("status", 0);
+    saveToStorage("userTarget", "");
 });
 
 function getTimeStamp() {
@@ -188,6 +189,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "updateText":
             userTarget = message.text;
             console.log(`User target: ${userTarget}`);
+            saveToStorage("userTarget", userTarget);
             break;
 
         /// Temporary Functions

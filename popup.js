@@ -193,4 +193,9 @@ window.onload = () => {
             isRunning = true;
         }
     });
+    getFromStorage("userTarget").then((text) => {
+        if (text == undefined) return;
+        if (text.length == 0) return;
+        input.value = text;
+    });
 }
