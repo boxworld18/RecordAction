@@ -16,7 +16,7 @@ let windowSizeY = 900;
 let lastEventPosX = 0;
 let lastEventPosY = 0;
 let lastCapture = 0;
-let captureInterval = 1000;
+const captureInterval = 1000;
 
 // Sleep function
 const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleeping"));
@@ -63,127 +63,161 @@ function downloadAsDataURL(url) {
     })
 }
 
+function updateContent(content, type = "spUpdate") {
+    chrome.runtime.sendMessage({
+        type: type,
+        content: content
+    });
+}
+
+async function handleEvent(obj) {
+    const url = obj.url;
+    const eType = obj.type;
+
+    // remove chrome extension events
+    if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
+
+    // last move
+    var lastObj = {
+        type: "undefined"
+    };
+
+    if (eventArray.length)
+        lastObj = eventArray[eventArray.length - 1];
+
+    // remove duplicate events
+    if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type) {
+        if (Math.abs(obj.windowView.x - lastEventPosX) * 3 < windowSizeX &&
+            Math.abs(obj.windowView.y - lastEventPosY) * 3 < windowSizeY)
+            return;
+    }
+
+    if (eType == "resize" && eType == lastObj.type) {
+        windowSizeX = obj.windowSize.x;
+        windowSizeY = obj.windowSize.y;
+        eventArray.pop();
+    }
+
+    // add screenshot
+    const waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 1);
+    console.log(`waitTime: ${waitTime}`);
+
+    if ((eType == "resize" || eType !== "scroll") && waitTime > 1) return;
+
+    // for normal event, wait for captureInterval and then capture screenshot
+    // but for duplicate scroll events, capture screenshot immediately or drop it
+    await sleep(waitTime);
+
+    await chrome.tabs.captureVisibleTab((dataUri) => {
+        obj.screenshot = dataUri;
+    });
+
+    lastCapture = Date.now();
+    console.log('window captured');
+
+    eventArray.push(obj);
+
+    // display events in console
+    if (eType == "resize") return;
+
+    if (lastObj.type == "resize") {
+        console.log(lastObj);
+        updateContent(lastObj);
+    }
+
+    await sleep(500);
+
+    console.log(obj);
+    updateContent(obj);
+
+    lastEventPosX = obj.posX;
+    lastEventPosY = obj.posY;
+}
+
+function saveAsFile() {
+    const object = {
+        target: userTarget,
+        action: eventArray,
+        timestamp: timestamp
+    }
+    const jsonse = JSON.stringify(object);
+    const filename = `recact_${timestamp}.json`;
+    const reader = new FileReader();
+    const blob = new Blob([jsonse], {
+        type: "application/json"
+    });
+
+    reader.onload = () => {
+        const url = reader.result;
+        chrome.downloads.download({
+            url: url,
+            filename: filename,
+            saveAs: false,
+            conflictAction: 'overwrite'
+        });
+    };
+
+    reader.readAsDataURL(blob);
+    console.log(`Saving events to file ${filename}`);
+}
+
+function windowCapture() {
+    chrome.tabs.captureVisibleTab((dataUri) => {
+        downloadAsDataURL(dataUri)
+            .then((res) => {
+                console.log(`Window captured!`);
+                console.log(dataUri);
+                console.log(res);
+                chrome.downloads.download({
+                    url: res,
+                    filename: 'test.jpg',
+                    saveAs: false,
+                    conflictAction: 'overwrite'
+                });
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+    });
+}
+
+function setIcon(status) {
+    // chrome.action.setIcon({
+    //     path: `icon_${status}.png`
+    // });
+}
+
 // Status change listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
-        /// Basic Functions
-        /// Start, pause, stop recording and monitor events
         case "startRecording":
             // update timestamp if it's a new recording
             timestamp = getTimeStamp();
             eventArray = [];
+            updateContent({}, "spClear");
         case "continueRecording":
             saveToStorage("status", 1);
-            // chrome.action.setIcon({
-            //     path: "icon_rec.png"
-            // });
+            setIcon(1);
             console.log("Recording started");
             break;
         case "pauseRecording":
             saveToStorage("status", 2);
-            // chrome.action.setIcon({
-            //     path: "icon_pause.png"
-            // });
+            setIcon(2);
             console.log("Pause recording");
             break;
         case "stopRecording":
             saveToStorage("status", 0);
-            // chrome.action.setIcon({
-            //     path: "icon.png"
-            // });
+            setIcon(0);
             console.log("Recording stopped");
             break;
 
         case "event":
-            const obj = message.event;
-            const url = obj.url;
-            const eType = obj.type;
-            // remove chrome extension events
-            if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
-
-            // last move
-            var lastObj = {
-                type: "undefined"
-            };
-
-            if (eventArray.length)
-                lastObj = eventArray[eventArray.length - 1];
-
-            // remove duplicate events
-            if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type) {
-                if (Math.abs(obj.windowView.x - lastEventPosX) * 3 < windowSizeX
-                    && Math.abs(obj.windowView.y - lastEventPosY) * 3 < windowSizeY)
-                    break;
-            }
-
-            if (eType == "resize" && eType == lastObj.type) {
-                windowSizeX = obj.windowSize.x;
-                windowSizeY = obj.windowSize.y;
-                eventArray.pop();
-            }
-
-            // add screenshot
-            var waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 0);
-            console.log(`waitTime: ${waitTime}`);
-            if (eType !== "resize" && eType !== "scroll") {
-                // for normal event, wait for captureInterval and then capture screenshot
-                sleep(waitTime).then(() => {
-                    chrome.tabs.captureVisibleTab((dataUri) => {
-                        obj.screenshot = dataUri;
-                    });
-                    lastCapture = Date.now();
-                    console.log('window captured');
-                });
-            } else {
-                // for duplicate scroll events, capture screenshot immediately
-                if (waitTime <= 0) {
-                    chrome.tabs.captureVisibleTab((dataUri) => {
-                        obj.screenshot = dataUri;
-                    });
-                    lastCapture = Date.now();
-                    console.log('window captured');
-                }
-            }
-
-            eventArray.push(obj);
-
-            // display events in console
-            if (eType !== "resize") {
-                if (lastObj.type == "resize")
-                    console.log(lastObj);
-                console.log(obj);
-                lastEventPosX = obj.posX;
-                lastEventPosY = obj.posY;
-            }
+            var obj = message.event;
+            handleEvent(obj);
             break;
 
-        /// Useful Functions
-        /// Save events to file, update user target
         case "save":
-            const object = {
-                target: userTarget,
-                action: eventArray,
-                timestamp: timestamp
-            }
-            const jsonse = JSON.stringify(object);
-            const filename = `recact_${timestamp}.json`;
-            const reader = new FileReader();
-            const blob = new Blob([jsonse], {
-                type: "application/json"
-            });
-
-            reader.onload = function () {
-                const url = reader.result;
-                chrome.downloads.download({
-                    url: url,
-                    filename: filename,
-                    saveAs: false,
-                    conflictAction: 'overwrite'
-                });
-            };
-
-            reader.readAsDataURL(blob);
-            console.log(`Saving events to file ${filename}`);
+            saveAsFile();
             break;
 
         case "updateText":
@@ -192,26 +226,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             saveToStorage("userTarget", userTarget);
             break;
 
-        /// Temporary Functions
-        /// screen capture
         case "capture":
-            chrome.tabs.captureVisibleTab((dataUri) => {
-                downloadAsDataURL(dataUri)
-                    .then((res) => {
-                        console.log(`Window captured!`);
-                        console.log(dataUri);
-                        console.log(res);
-                        chrome.downloads.download({
-                            url: res,
-                            filename: 'test.jpg',
-                            saveAs: false,
-                            conflictAction: 'overwrite'
-                        });
-                    })
-                    .catch((err) => {
-                        console.error(err)
-                    })
-            });
+            windowCapture();
             break;
 
         case "videoCapture":

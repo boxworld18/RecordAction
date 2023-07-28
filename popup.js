@@ -29,7 +29,7 @@ startIcon.addEventListener("click", () => {
 
     updateTabStatus(1);
     if (!isRunning) {
-        stopIcon.style.color = "black";
+        stopIcon.style.color = "";
         stopIcon.classList.remove("disabled");
         stopIcon.classList.add("selected");
         saveIcon.classList.remove("selected");
@@ -181,12 +181,12 @@ window.onload = () => {
             if (status == 1) {
                 startIcon.style.display = "none";
                 pauseIcon.style.display = "inline-block";
-                stopIcon.style.color = "black";
+                stopIcon.style.color = "";
                 isPaused = false;
             } else if (status == 2) {
                 startIcon.style.display = "inline-block";
                 pauseIcon.style.display = "none";
-                stopIcon.style.color = "black";
+                stopIcon.style.color = "";
                 isPaused = true;
             }
 

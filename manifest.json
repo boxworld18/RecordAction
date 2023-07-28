@@ -1,6 +1,6 @@
 {
     "name": "Record Actions",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "manifest_version": 3,
     "description": "A Chrome extension to record user actions.",
     "action": {
@@ -23,6 +23,9 @@
             ]
         }
     ],
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    },
     "permissions": [
         "tabs",
         "activeTab",

@@ -85,6 +85,8 @@ function commonInfo(event) {
 }
 
 function processClickEvent(event) {
+    if (chrome.runtime == undefined) return;
+
     let obj = commonInfo(event);
     obj.text = event.target.text;
     obj.innerText = event.target.innerText;
@@ -100,6 +102,8 @@ function processClickEvent(event) {
 }
 
 function processChangeEvent(event) {
+    if (chrome.runtime == undefined) return;
+
     let obj = commonInfo(event);
     obj.value = event.target.value;
 
@@ -110,6 +114,7 @@ function processChangeEvent(event) {
 }
 
 function processKeyEvent(event) {
+    if (chrome.runtime == undefined) return;
     if (event.code !== 'Enter') return;
 
     let obj = {};
@@ -124,8 +129,9 @@ function processKeyEvent(event) {
 }
 
 function processScrollEvent(event) {
+    if (chrome.runtime == undefined) return;
+
     let obj = basicInfo(event);
-    
     chrome.runtime.sendMessage({
         type: 'event',
         event: obj
@@ -138,6 +144,8 @@ function getDomain(url) {
 }
 
 function processNavigateEvent(event) {
+    if (chrome.runtime == undefined) return;
+
     var src_url = document.URL;
     var dst_url = event.destination.url;
 
@@ -156,6 +164,8 @@ function processNavigateEvent(event) {
 }
 
 function processResizeEvent(event) {
+    if (chrome.runtime == undefined) return;
+    
     let obj = basicInfo(event);
     obj.windowSize = {
         x: window.innerWidth,
@@ -176,6 +186,7 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
+        // document.body.addEventListener('mouseover', processClickEvent);
         // document.addEventListener('scroll', processScrollEvent);
         document.addEventListener('scrollend', processScrollEvent);
         navigation.addEventListener('navigate', processNavigateEvent);
@@ -188,6 +199,7 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
+    // document.body.removeEventListener('mouseover', processClickEvent);
     // document.removeEventListener('scroll', processScrollEvent);
     document.removeEventListener('scrollend', processScrollEvent);
     navigation.removeEventListener('navigate', processNavigateEvent);

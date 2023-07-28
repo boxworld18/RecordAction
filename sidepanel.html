@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>sidepanel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="button-container">
+            <i class="fas fa-play start-icon selected"></i>
+            <i class="fas fa-pause pause-icon selected" style="display: none;"></i>
+            <i class="fas fa-play stop-icon disabled"></i>
+            <i class="fas fa-floppy-o save-icon selected"></i>
+            <i class="fas fa-camera camera-icon disabled"></i>
+            <i class="fas fa-video video-icon disabled"></i>
+        </div>
+        <div class="input-container">
+            <input type="text" placeholder="Your target is..." class="target-box">
+            <i class="fas fa-send send-icon selected"></i>
+        </div>
+    </div>
+    <div class="content">
+        <table id="result"></table>
+    </div>
+    <script src="sidepanel.js"></script>
+    <script src="storage.js"></script>
+    <script src="content.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

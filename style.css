@@ -1,0 +1,78 @@
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.button-container>*:not(:last-child) {
+    margin-right: 18px;
+}
+
+.input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-container>*:not(:last-child) {
+    margin-right: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-icon:before {
+    content: "\f04b";
+}
+
+.pause-icon:before {
+    content: "\f04c";
+}
+
+.stop-icon:before {
+    content: "\f04d";
+}
+
+.save-icon:before {
+    content: "\f0c7";
+}
+
+.camera-icon:before {
+    content: "\f030";
+}
+
+.send-icon:before {
+    content: "\f1d8";
+}
+
+.video-icon:before {
+    content: "\f03d";
+}
+
+.disabled {
+    color: #808080;
+}
+
+.selected:hover {
+    color: #0056b3 !important;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+.content {
+    padding-top: 70px;
+}
+
+.target-box {
+    width: 70%;
+}
