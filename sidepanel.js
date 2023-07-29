@@ -7,22 +7,37 @@ updateHeader();
 updateTable();
 
 function updateHeader() {
-    tableHeader = "<tr><th>Image</th><th>Event</th></tr>";
+    tableHeader = `<div class="table-container"><div class="table-image"><b>Image</b></div><div class="table-text"><b>Event</b></div></div><hr>`;
 }
 
+function lengthControl(str, len) {
+    if (str.length > len) {
+        return str.substring(0, len) + "...";
+    }
+    return str;
+}
 function updateContent(content) {
     var newContent = "";
-    newContent += "<tr>";
+    newContent += `<div class="table-container">`;
 
+    // add screenshot
+    newContent += `<div class="table-image">`;
     if (content.hasOwnProperty("screenshot")) {
-        newContent += `<td><img src="${content.screenshot}" width="200" height="200"></td>`;
-    } else {
-        newContent += `<td></td>`;
+        newContent += `<img class="table-img" src="${content.screenshot}" width="100%" height="100%">`;
     }
+    newContent += `</div>`;
 
-    newContent += `<td>${content.type}</td>`;
+    // event info
+    newContent += `<div class="table-text">`;
+    
+    newContent += `<b>${content.type}</b>`;
+    if (content.hasOwnProperty("text")) {
+        newContent += `<br>element "${content.text}"`;
+    }
+    
+    newContent += `</div>`;
 
-    newContent += "</tr>"
+    newContent += "</div><hr>"
     tableContent += newContent;
 }
 

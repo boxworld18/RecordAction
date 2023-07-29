@@ -6,6 +6,7 @@ const saveIcon = document.querySelector(".save-icon");
 const cameraIcon = document.querySelector(".camera-icon");
 const videoIcon = document.querySelector(".video-icon");
 const sendIcon = document.querySelector(".send-icon");
+const input = document.querySelector('input[type="text"]');
 
 let isRunning = false;
 let isPaused = false;
@@ -141,7 +142,6 @@ videoIcon.addEventListener("click", () => {
 });
 
 /* Input Bar */
-const input = document.querySelector('input[type="text"]');
 input.addEventListener('change', () => {
     const text = input.value;
     chrome.runtime.sendMessage({
@@ -158,40 +158,64 @@ sendIcon.addEventListener("click", () => {
     });
 });
 
+function updateExternally(status) {
+    updateTabStatus(status);
+    if (status == 0) {
+        startIcon.style.display = "inline-block";
+        pauseIcon.style.display = "none";
+        stopIcon.style.color = "grey";
+        isRunning = false;
+        isPaused = false;
+    } else {
+        if (status < 0 || status > 2) return;
+
+        if (stopIcon.classList.contains("disabled")) {
+            stopIcon.classList.remove("disabled");
+            stopIcon.classList.add("selected");
+            saveIcon.classList.remove("selected");
+            saveIcon.classList.add("disabled");
+        }
+
+        if (status == 1) {
+            startIcon.style.display = "none";
+            pauseIcon.style.display = "inline-block";
+            stopIcon.style.color = "";
+            isPaused = false;
+        } else if (status == 2) {
+            startIcon.style.display = "inline-block";
+            pauseIcon.style.display = "none";
+            stopIcon.style.color = "";
+            isPaused = true;
+        }
+
+        isRunning = true;
+    }
+}
+
+// Status change listener
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    switch (message.type) {
+        case "startRecording":
+        case "continueRecording":
+            updateExternally(1);
+            break;
+        case "pauseRecording":
+            updateExternally(2);
+            break;
+        case "stopRecording":
+            updateExternally(0);
+            break;
+        default:
+            break;
+    }
+
+    return true;
+});
+
 // Reset state of the extension when the popup is opened
 window.onload = () => {
     getFromStorage("status").then((status) => {
-        updateTabStatus(status);
-        if (status == 0) {
-            startIcon.style.display = "inline-block";
-            pauseIcon.style.display = "none";
-            stopIcon.style.color = "grey";
-            isRunning = false;
-            isPaused = false;
-        } else {
-            if (status < 0 || status > 2) return;
-
-            if (stopIcon.classList.contains("disabled")) {
-                stopIcon.classList.remove("disabled");
-                stopIcon.classList.add("selected");
-                saveIcon.classList.remove("selected");
-                saveIcon.classList.add("disabled");
-            }
-
-            if (status == 1) {
-                startIcon.style.display = "none";
-                pauseIcon.style.display = "inline-block";
-                stopIcon.style.color = "";
-                isPaused = false;
-            } else if (status == 2) {
-                startIcon.style.display = "inline-block";
-                pauseIcon.style.display = "none";
-                stopIcon.style.color = "";
-                isPaused = true;
-            }
-
-            isRunning = true;
-        }
+        updateExternally(status);
     });
     getFromStorage("userTarget").then((text) => {
         if (text == undefined) return;
