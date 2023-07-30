@@ -186,7 +186,8 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
-        // document.body.addEventListener('mouseover', processClickEvent);
+        // document.body.addEventListener('mouseenter', processClickEvent);
+        // document.body.addEventListener('mouseleave', processClickEvent);
         // document.addEventListener('scroll', processScrollEvent);
         document.addEventListener('scrollend', processScrollEvent);
         navigation.addEventListener('navigate', processNavigateEvent);
@@ -199,7 +200,8 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
-    // document.body.removeEventListener('mouseover', processClickEvent);
+    // document.body.removeEventListener('mouseenter', processClickEvent);
+    // document.body.removeEventListener('mouseleave', processClickEvent);
     // document.removeEventListener('scroll', processScrollEvent);
     document.removeEventListener('scrollend', processScrollEvent);
     navigation.removeEventListener('navigate', processNavigateEvent);

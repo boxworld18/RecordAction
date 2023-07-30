@@ -1,6 +1,6 @@
 {
     "name": "Record Actions",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "manifest_version": 3,
     "description": "A Chrome extension to record user actions.",
     "action": {

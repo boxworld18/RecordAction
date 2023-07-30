@@ -1,6 +1,10 @@
 const tableId = "result";
+const lastElement = "last_element";
 var tableHeader = "";
-var tableContent = "";
+var contentList = [];
+
+// Sleep function
+const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleeping"));
 
 /// init
 updateHeader();
@@ -12,11 +16,15 @@ function updateHeader() {
 
 function lengthControl(str, len) {
     if (str.length > len) {
-        return str.substring(0, len) + "...";
+        return str.substring(0, len - 3) + "...";
     }
     return str;
 }
+
 function updateContent(content) {
+    const contentId = content.eventId;
+    const elementId = `rm_btn_${contentId}`;
+
     var newContent = "";
     newContent += `<div class="table-container">`;
 
@@ -29,38 +37,78 @@ function updateContent(content) {
 
     // event info
     newContent += `<div class="table-text">`;
-    
     newContent += `<b>${content.type}</b>`;
     if (content.hasOwnProperty("text")) {
-        newContent += `<br>element "${content.text}"`;
+        newContent += `<br>element "${lengthControl(content.text, 20)}"`;
+    } else if (content.hasOwnProperty("navUrl")) {
+        newContent += `<br><div title="${content.navUrl}">"${lengthControl(content.navUrl, 25)}"</div>`;
     }
-    
     newContent += `</div>`;
 
-    newContent += "</div><hr>"
-    tableContent += newContent;
+    // remove button
+    newContent += `<div class="table-remove">`;
+    newContent += `<button class="remove-button" id="${elementId}">X</button>`;
+    newContent += `</div>`;
+
+    newContent += `</div><hr>`;
+
+    console.log(`before contentList changes: ${contentId}`);
+    contentList.push({
+        id: contentId,
+        content: newContent
+    });
 }
 
 function updateTable() {
+    var tableContent = "";
+    console.log(`update table ${contentList.length}`);
+    for (var i = 0; i < contentList.length; i++) {
+        tableContent += contentList[i].content;
+    }
+
     document.getElementById(tableId).innerHTML = tableHeader + tableContent;
+    sleep(300).then(() => {
+        updateListener();
+    });
 }
 
 function updateView() {
     document.body.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "end"
     });
 }
+
+function removeContent(position) {
+    const contentId = contentList[position].id;
+    console.log(`remove event ${contentId}`);
+    contentList[position].content = "";
+    updateTable();
+    chrome.runtime.sendMessage({
+        type: "bgRemove",
+        content: contentId
+    });
+}
+
+function updateListener() {
+    for (var i = 0; i < contentList.length; i++) {
+        if (contentList[i].content == "") continue;
+        const position = i;
+        const contentId = contentList[i].id;
+        const elementId = `rm_btn_${contentId}`;
+        document.getElementById(elementId).addEventListener("click", (event) => removeContent(position));
+    }
+};
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
         case "spUpdate":
             updateContent(message.content);
-            updateTable();
             updateView();
+            updateTable();
             break;
         case "spClear":
-            tableContent = "";
+            contentList = [];
             updateTable();
             break;
         default:

@@ -9,6 +9,8 @@ try {
 let timestamp = '--NO-TIMESTAMP--';
 let eventArray = [];
 let userTarget = '';
+let nowStatus = 0;
+let objId = 0;
 
 // Screenshot parameters
 let windowSizeX = 1280;
@@ -26,6 +28,35 @@ chrome.runtime.onInstalled.addListener(() => {
     console.log("Chrome ext: ->  extension started");
     saveToStorage("status", 0);
     saveToStorage("userTarget", "");
+});
+
+function updateEventArray(obj) {
+    obj.eventId = objId;
+    eventArray.push(obj);
+    objId++;
+}
+// Listen navigation events
+chrome.webNavigation.onCompleted.addListener((details) => {
+    if (nowStatus == 1 && details.frameId == 0) {
+        console.log(details);
+
+        let obj = {
+            type: "navigation",
+            navUrl: details.url
+        };
+
+        const waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 1);
+
+        sleep(waitTime).then(chrome.tabs.captureVisibleTab((dataUri) => {
+            obj.screenshot = dataUri;
+        }));
+
+        sleep(1000).then(() => {
+            updateEventArray(obj);
+            console.log(obj);
+            updateContent(obj);
+        });
+    }
 });
 
 function getTimeStamp() {
@@ -70,6 +101,10 @@ function updateContent(content, type = "spUpdate") {
     });
 }
 
+function removeContent(contentId) {
+    eventArray[contentId] = null;
+}
+
 async function handleEvent(obj) {
     const url = obj.url;
     const eType = obj.type;
@@ -96,6 +131,7 @@ async function handleEvent(obj) {
         windowSizeX = obj.windowSize.x;
         windowSizeY = obj.windowSize.y;
         eventArray.pop();
+        objId--;
     }
 
     // add screenshot
@@ -115,7 +151,7 @@ async function handleEvent(obj) {
     lastCapture = Date.now();
     console.log('window captured');
 
-    eventArray.push(obj);
+    updateEventArray(obj);
 
     // display events in console
     if (eType == "resize") return;
@@ -125,7 +161,7 @@ async function handleEvent(obj) {
         updateContent(lastObj);
     }
 
-    await sleep(500);
+    await sleep(1000);
 
     console.log(obj);
     updateContent(obj);
@@ -135,11 +171,19 @@ async function handleEvent(obj) {
 }
 
 function saveAsFile() {
+    var newArray = [];
+    for (var i = 0; i < eventArray.length; i++) {
+        if (eventArray[i] != null) {
+            newArray.push(eventArray[i]);
+        }
+    };
+
     const object = {
         target: userTarget,
-        action: eventArray,
+        action: newArray,
         timestamp: timestamp
     }
+
     const jsonse = JSON.stringify(object);
     const filename = `recact_${timestamp}.json`;
     const reader = new FileReader();
@@ -181,7 +225,8 @@ function windowCapture() {
     });
 }
 
-function setIcon(status) {
+function setStatus(status) {
+    nowStatus = status;
     // chrome.action.setIcon({
     //     path: `icon_${status}.png`
     // });
@@ -194,20 +239,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // update timestamp if it's a new recording
             timestamp = getTimeStamp();
             eventArray = [];
+            objId = 0;
             updateContent({}, "spClear");
         case "continueRecording":
             saveToStorage("status", 1);
-            setIcon(1);
+            setStatus(1);
             console.log("Recording started");
             break;
         case "pauseRecording":
             saveToStorage("status", 2);
-            setIcon(2);
+            setStatus(2);
             console.log("Pause recording");
             break;
         case "stopRecording":
             saveToStorage("status", 0);
-            setIcon(0);
+            setStatus(0);
             console.log("Recording stopped");
             break;
 
@@ -232,6 +278,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         case "videoCapture":
             console.log(`Video capture started, stream id: ${message.streamId}`);
+            break;
+
+        case "bgRemove":
+            removeContent(message.content)
             break;
 
         default:
