@@ -178,6 +178,26 @@ function processResizeEvent(event) {
     });
 }
 
+function processHoverEvent(event) {
+    if (chrome.runtime == undefined) return;
+
+    let obj = commonInfo(event);
+    obj.text = event.target.text;
+    obj.innerText = event.target.innerText;
+    
+    // remove leading and trailing spaces
+    if (!(obj.text === undefined))
+        obj.text = obj.text.trim();
+
+    // only record a or span
+    if (!(obj.tagName == 'a' || obj.tagName == 'span')) return;
+
+    chrome.runtime.sendMessage({
+        type: 'event',
+        event: obj
+    });
+}
+
 function setListeners() {
     getFromStorage('status').then((status) => {
         if (status != 1) return;
@@ -186,11 +206,12 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
+        document.body.addEventListener('mouseover', processHoverEvent);
         // document.body.addEventListener('mouseenter', processClickEvent);
         // document.body.addEventListener('mouseleave', processClickEvent);
         // document.addEventListener('scroll', processScrollEvent);
         document.addEventListener('scrollend', processScrollEvent);
-        navigation.addEventListener('navigate', processNavigateEvent);
+        // navigation.addEventListener('navigate', processNavigateEvent);
         window.addEventListener('resize', processResizeEvent);
     });
 }
@@ -200,11 +221,12 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
+    document.body.removeEventListener('mouseover', processHoverEvent);
     // document.body.removeEventListener('mouseenter', processClickEvent);
     // document.body.removeEventListener('mouseleave', processClickEvent);
     // document.removeEventListener('scroll', processScrollEvent);
     document.removeEventListener('scrollend', processScrollEvent);
-    navigation.removeEventListener('navigate', processNavigateEvent);
+    // navigation.removeEventListener('navigate', processNavigateEvent);
     window.removeEventListener('resize', processResizeEvent);
 }
 

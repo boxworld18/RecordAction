@@ -8,28 +8,30 @@
 </head>
 
 <body>
-    <div class="header">
-        <div class="button-container">
-            <i class="fas fa-play start-icon selected"></i>
-            <i class="fas fa-pause pause-icon selected" style="display: none;"></i>
-            <i class="fas fa-play stop-icon disabled"></i>
-            <i class="fas fa-floppy-o save-icon selected"></i>
-            <i class="fas fa-camera camera-icon disabled"></i>
-            <i class="fas fa-video video-icon disabled"></i>
+    <div id="panel">
+        <div class="header">
+            <div class="button-container">
+                <i class="fas fa-play start-icon selected"></i>
+                <i class="fas fa-pause pause-icon selected" style="display: none;"></i>
+                <i class="fas fa-play stop-icon disabled"></i>
+                <i class="fas fa-floppy-o save-icon selected"></i>
+                <i class="fas fa-camera camera-icon disabled"></i>
+                <i class="fas fa-video video-icon disabled"></i>
+            </div>
+            <div class="input-container">
+                <i class='fas fa-angle-double-left fa-lg' id="web_left"></i>
+                <i class='fas fa-angle-left fa-lg' id="task_left"></i>
+                <input type="text" class="target-box" id="web_id">
+                <input type="text" class="target-box" id="task_id">
+                <i class='fas fa-angle-right fa-lg' id="task_right"></i>
+                <i class='fas fa-angle-double-right fa-lg' id="web_right"></i>
+            </div>
+            <div id="web_info">web description</div>
+            <div id="task_info">task description</div>
         </div>
-        <div class="input-container">
-            <i class='fas fa-angle-double-left fa-lg' id="web_left"></i>
-            <i class='fas fa-angle-left fa-lg' id="task_left"></i>
-            <input type="text" class="target-box" id="web_id">
-            <input type="text" class="target-box" id="task_id">
-            <i class='fas fa-angle-right fa-lg' id="task_right"></i>
-            <i class='fas fa-angle-double-right fa-lg' id="web_right"></i>
+        <div class="content">
+            <div id="result"></div>
         </div>
-        <div id="web_info">web description</div>
-        <div id="task_info">task description</div>
-    </div>
-    <div class="content">
-        <div id="result"></div>
     </div>
     <script src="sidepanel.js"></script>
     <script src="storage.js"></script>

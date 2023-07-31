@@ -1,17 +1,29 @@
 const tableId = "result";
-const lastElement = "last_element";
-var tableHeader = "";
-var contentList = [];
 
-// Sleep function
+/// Sleep function
 const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleeping"));
 
 /// init
-updateHeader();
-updateTable();
+resetTable();
 
-function updateHeader() {
-    tableHeader = `<div class="table-container"><div class="table-image"><b>Image</b></div><div class="table-text"><b>Event</b></div></div><hr>`;
+/// reset: clear all content in the table
+function resetTable() {
+    var header = document.createElement('div');
+    header.classList.add("table-container");
+
+    var hdrImg = document.createElement('div');
+    hdrImg.classList.add("table-image");
+    hdrImg.innerHTML = `<b>Image</b>`;
+    header.appendChild(hdrImg);
+
+    var hdrTxt = document.createElement('div');
+    hdrTxt.classList.add("table-text");
+    hdrTxt.innerHTML = `<b>Event</b>`;
+    header.appendChild(hdrTxt);
+
+    const hdrHr = document.createElement('hr');
+
+    document.getElementById(tableId).replaceChildren(header, hdrHr);
 }
 
 function lengthControl(str, len) {
@@ -23,52 +35,69 @@ function lengthControl(str, len) {
 
 function updateContent(content) {
     const contentId = content.eventId;
-    const elementId = `rm_btn_${contentId}`;
+    const elementId = `ctx_${contentId}`;
+    const contentHrId = `ctx_hr_${contentId}`;
+    const rmBtnId = `rm_btn_${contentId}`;
 
-    var newContent = "";
-    newContent += `<div class="table-container">`;
+    var newContent = document.createElement('div');
+    newContent.classList.add("table-container");
+    newContent.id = elementId;
 
     // add screenshot
-    newContent += `<div class="table-image">`;
+    var ctxImg = document.createElement('div');
+    ctxImg.classList.add("table-image");
     if (content.hasOwnProperty("screenshot")) {
-        newContent += `<img class="table-img" src="${content.screenshot}" width="100%" height="100%">`;
+        var tarImg = document.createElement('img');
+        tarImg.classList.add("table-img");
+        tarImg.src = content.screenshot;
+        tarImg.width = "100%";
+        tarImg.height = "100%";
+        ctxImg.appendChild(tarImg);
     }
-    newContent += `</div>`;
+    newContent.appendChild(ctxImg);
 
     // event info
-    newContent += `<div class="table-text">`;
-    newContent += `<b>${content.type}</b>`;
+    var ctxInfo = document.createElement('div');
+    ctxInfo.classList.add("table-text");
+    ctxInfo.innerHTML = `<b>${content.type}</b>`;
     if (content.hasOwnProperty("text")) {
-        newContent += `<br>element "${lengthControl(content.text, 20)}"`;
+        ctxInfo.innerHTML += `<br class="content-text">elem "${content.text}"`;
     } else if (content.hasOwnProperty("navUrl")) {
-        newContent += `<br><div title="${content.navUrl}">"${lengthControl(content.navUrl, 25)}"</div>`;
+        ctxInfo.innerHTML += `<br><div class="content-text" title="${content.navUrl}">"${content.navUrl}"</div>`;
     }
-    newContent += `</div>`;
+    newContent.appendChild(ctxInfo);
+
+    // button
+    var ctxBtn = document.createElement('div');
+    ctxBtn.classList.add("table-remove");
 
     // remove button
-    newContent += `<div class="table-remove">`;
-    newContent += `<button class="remove-button" id="${elementId}">X</button>`;
-    newContent += `</div>`;
+    var ctxRmBtn = document.createElement('button');
+    ctxRmBtn.classList.add("remove-button");
+    ctxRmBtn.id = rmBtnId;
+    ctxRmBtn.innerHTML = "X";
+    ctxBtn.appendChild(ctxRmBtn);
+    newContent.appendChild(ctxBtn);
 
-    newContent += `</div><hr>`;
+    // add blank line
+    var ctxHr = document.createElement('hr');
+    ctxHr.id = contentHrId;
+    document.getElementById(tableId).appendChild(newContent);
+    document.getElementById(tableId).appendChild(ctxHr);
 
-    console.log(`before contentList changes: ${contentId}`);
-    contentList.push({
-        id: contentId,
-        content: newContent
+    sleep(300).then(() => {
+        document.getElementById(rmBtnId).addEventListener("click", (event) => removeContent(contentId));
     });
 }
 
-function updateTable() {
-    var tableContent = "";
-    console.log(`update table ${contentList.length}`);
-    for (var i = 0; i < contentList.length; i++) {
-        tableContent += contentList[i].content;
-    }
-
-    document.getElementById(tableId).innerHTML = tableHeader + tableContent;
-    sleep(300).then(() => {
-        updateListener();
+function removeContent(contentId) {
+    const elementId = `ctx_${contentId}`;
+    const contentHrId = `ctx_hr_${contentId}`;
+    document.getElementById(elementId).remove();
+    document.getElementById(contentHrId).remove();
+    chrome.runtime.sendMessage({
+        type: "bgRemove",
+        content: contentId
     });
 }
 
@@ -79,37 +108,14 @@ function updateView() {
     });
 }
 
-function removeContent(position) {
-    const contentId = contentList[position].id;
-    console.log(`remove event ${contentId}`);
-    contentList[position].content = "";
-    updateTable();
-    chrome.runtime.sendMessage({
-        type: "bgRemove",
-        content: contentId
-    });
-}
-
-function updateListener() {
-    for (var i = 0; i < contentList.length; i++) {
-        if (contentList[i].content == "") continue;
-        const position = i;
-        const contentId = contentList[i].id;
-        const elementId = `rm_btn_${contentId}`;
-        document.getElementById(elementId).addEventListener("click", (event) => removeContent(position));
-    }
-};
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
         case "spUpdate":
             updateContent(message.content);
             updateView();
-            updateTable();
             break;
         case "spClear":
-            contentList = [];
-            updateTable();
+            resetTable();
             break;
         default:
             // do nothing
