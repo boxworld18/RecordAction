@@ -69,12 +69,19 @@
     text-align: center;
 }
 
+#web_info, #task_info {
+    padding-top: 20px;
+    padding-left: 0;
+    padding-right: 20px;
+    text-align: left;
+}
+
 .content {
-    padding-top: 70px;
+    padding-top: 20px;
 }
 
 .target-box {
-    width: 70%;
+    width: 20%;
 }
 
 .table-container {

@@ -8,7 +8,8 @@ try {
 // Record data
 let timestamp = '--NO-TIMESTAMP--';
 let eventArray = [];
-let userTarget = '';
+let webID = "0";
+let taskID = "0";
 let nowStatus = 0;
 let objId = 0;
 
@@ -27,7 +28,8 @@ const sleep = (time) => new Promise((res) => setTimeout(res, time, "done sleepin
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Chrome ext: ->  extension started");
     saveToStorage("status", 0);
-    saveToStorage("userTarget", "");
+    saveToStorage("webID", "0");
+    saveToStorage("taskID", "0");
 });
 
 function updateEventArray(obj) {
@@ -266,10 +268,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             saveAsFile();
             break;
 
-        case "updateText":
-            userTarget = message.text;
-            console.log(`User target: ${userTarget}`);
-            saveToStorage("userTarget", userTarget);
+        case "updateWebID":
+            webID = message.text;
+            console.log(`Web ID: ${webID}`);
+            saveToStorage("webID", webID);
+            break;
+        
+        case "updateTaskID":
+            taskID = message.text;
+            console.log(`Task ID: ${taskID}`);
+            saveToStorage("taskID", taskID);
             break;
 
         case "capture":

@@ -5,11 +5,25 @@ const stopIcon = document.querySelector(".stop-icon");
 const saveIcon = document.querySelector(".save-icon");
 const cameraIcon = document.querySelector(".camera-icon");
 const videoIcon = document.querySelector(".video-icon");
-const sendIcon = document.querySelector(".send-icon");
-const input = document.querySelector('input[type="text"]');
+const web_id = document.querySelector('#web_id');
+const task_id = document.querySelector('#task_id');
+const web_info = document.querySelector('#web_info');
+const task_info = document.querySelector('#task_info');
+const web_left = document.querySelector('#web_left');
+const web_right = document.querySelector('#web_right');
+const task_left = document.querySelector('#task_left');
+const task_right = document.querySelector('#task_right');
+
+
+const maxWebID = 6;
+const maxTaskID = 50;
 
 let isRunning = false;
 let isPaused = false;
+
+function isNum(val){
+    return !isNaN(val)
+}
 
 function updateTabStatus(state) {
     chrome.tabs.query({
@@ -141,21 +155,95 @@ videoIcon.addEventListener("click", () => {
 
 });
 
-/* Input Bar */
-input.addEventListener('change', () => {
-    const text = input.value;
+/* web id Bar */
+web_id.addEventListener('change', () => {
+    if (!isNum(web_id.value) || web_id.value > maxWebID) {
+        getFromStorage("webID").then((text) => {
+            if (text == undefined) return;
+            if (text.length == 0) return;
+            web_id.value = text;
+        });
+        return;
+    }
+
+    // update storage web id
     chrome.runtime.sendMessage({
-        type: "updateText",
-        text: text
+        type: "updateWebID",
+        text: web_id.value
+    });
+
+    // readFile
+    const metaPath = chrome.runtime.getURL(`tasks/${web_id.value}/meta.json`);
+    fetch(metaPath).then(
+        (res) => res.json()
+    ).then((result) => {
+        data = result;
+
+        // update web info
+        web_info.innerHTML = data.purpose;
+
+        // jump to new website
+        console.log(data.url);
+        chrome.tabs.create({url: `https://${data.url}/`});
+
+        // task id to be 0
+        task_id.value = 0;
+        task_id.dispatchEvent(new Event("change"));
     });
 });
 
-sendIcon.addEventListener("click", () => {
-    const text = input.value;
+/* task id Bar */
+task_id.addEventListener('change', () => {
+    
+    if (!isNum(task_id.value) || task_id.value > maxTaskID) {
+        getFromStorage("taskID").then((text) => {
+            if (text == undefined) return;
+            if (text.length == 0) return;
+            task_id.value = text;
+        });
+        return;
+    }
+
+    // update storage task id
     chrome.runtime.sendMessage({
-        type: "updateText",
-        text: text
+        type: "updateTaskID",
+        text: task_id.value
     });
+
+    // readFile
+    const dataPath = chrome.runtime.getURL(`tasks/${web_id.value}/data.jsonl`);
+    fetch(dataPath).then(
+        (res) => res.text()
+    ).then((result) => {
+        dataList = result.split('\n');
+
+        data = JSON.parse(dataList[Number(task_id.value)]);
+        console.log(data);
+
+        // update task info
+        task_info.innerHTML = data.query;
+    });
+    
+});
+
+web_left.addEventListener("click", () => {
+    web_id.value = web_id.value - 1 > 0? web_id.value - 1: 0;
+    web_id.dispatchEvent(new Event("change"));
+});
+
+web_right.addEventListener("click", () => {
+    web_id.value = String(Number(web_id.value) + 1);
+    web_id.dispatchEvent(new Event("change"));
+});
+
+task_left.addEventListener("click", () => {
+    task_id.value = task_id.value - 1 > 0? task_id.value - 1: 0;
+    task_id.dispatchEvent(new Event("change"));
+});
+
+task_right.addEventListener("click", () => {
+    task_id.value = String(Number(task_id.value) + 1);
+    task_id.dispatchEvent(new Event("change"));
 });
 
 function updateExternally(status) {
@@ -217,9 +305,16 @@ window.onload = () => {
     getFromStorage("status").then((status) => {
         updateExternally(status);
     });
-    getFromStorage("userTarget").then((text) => {
+    getFromStorage("webID").then((text) => {
         if (text == undefined) return;
         if (text.length == 0) return;
-        input.value = text;
+        web_id.value = text;
+        web_id.dispatchEvent(new Event("change"));
+    });
+    getFromStorage("taskID").then((text) => {
+        if (text == undefined) return;
+        if (text.length == 0) return;
+        task_id.value = text;
+        task_id.dispatchEvent(new Event("change"));
     });
 }

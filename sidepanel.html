@@ -18,9 +18,15 @@
             <i class="fas fa-video video-icon disabled"></i>
         </div>
         <div class="input-container">
-            <input type="text" placeholder="Your target is..." class="target-box">
-            <i class="fas fa-send send-icon selected"></i>
+            <i class='fas fa-angle-double-left fa-lg' id="web_left"></i>
+            <i class='fas fa-angle-left fa-lg' id="task_left"></i>
+            <input type="text" class="target-box" id="web_id">
+            <input type="text" class="target-box" id="task_id">
+            <i class='fas fa-angle-right fa-lg' id="task_right"></i>
+            <i class='fas fa-angle-double-right fa-lg' id="web_right"></i>
         </div>
+        <div id="web_info">web description</div>
+        <div id="task_info">task description</div>
     </div>
     <div class="content">
         <div id="result"></div>
