@@ -172,7 +172,7 @@ async function handleEvent(obj) {
     lastEventPosY = obj.posY;
 }
 
-function saveAsFile() {
+function saveAsFile(target, webId, taskId) {
     var newArray = [];
     for (var i = 0; i < eventArray.length; i++) {
         if (eventArray[i] != null) {
@@ -181,13 +181,13 @@ function saveAsFile() {
     };
 
     const object = {
-        target: userTarget,
+        target: target,
         action: newArray,
         timestamp: timestamp
     }
 
     const jsonse = JSON.stringify(object);
-    const filename = `recact_${timestamp}.json`;
+    const filename = `tasks/${webId}/recact_${taskId}.json`;
     const reader = new FileReader();
     const blob = new Blob([jsonse], {
         type: "application/json"
@@ -265,7 +265,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
 
         case "save":
-            saveAsFile();
+            target = message.target;
+            webId = message.webId;
+            taskId = message.taskId;
+
+            saveAsFile(target, webId, taskId);
             break;
 
         case "updateWebID":

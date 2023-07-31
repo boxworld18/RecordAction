@@ -100,7 +100,10 @@ stopIcon.addEventListener("click", () => {
 saveIcon.addEventListener("click", () => {
     if (!isRunning) {
         chrome.runtime.sendMessage({
-            type: "save"
+            type: "save",
+            target: task_info.innerHTML,
+            webId: web_id.value,
+            taskId: task_id.value
         });
     }
 });
