@@ -26,46 +26,47 @@ function resetTable() {
     hdrTxt.innerHTML = `<b>Event</b>`;
     header.appendChild(hdrTxt);
 
-    var hdrBtn = document.createElement('div');
-    hdrBtn.classList.add("table-remove");
+    const hdrBtn = getBtn(contentId, false);
+    const addMenu = getAddMenu(contentId);
 
-    // button container
-    var ctnBtn = document.createElement('div');
-    ctnBtn.classList.add("content-button-container");
-
-    const addBtnId = `add_btn_${contentId}`;
-    var addBtn = document.createElement('i');
-    addBtn.classList.add("add-button", "fas", "fa-plus", "selected");
-    addBtn.id = addBtnId;
-
-    ctnBtn.appendChild(addBtn);
-    hdrBtn.appendChild(ctnBtn);
     header.appendChild(hdrBtn);
+    header.appendChild(addMenu);
 
     const hdrHr = document.createElement('hr');
     hdrHr.id = `ctx_hr_${contentId}`;
 
     document.getElementById(tableId).replaceChildren(header, hdrHr);
     sleep(300).then(() => {
-        document.getElementById(addBtnId).addEventListener("click", (event) => addContent(contentId));
+        listenAddEvent(contentId);
     });
 }
 
-function lengthControl(str, len) {
-    if (str.length > len) {
-        return str.substring(0, len - 3) + "...";
-    }
-    return str;
+function listenRmEvent(contentId) {
+    const rmBtnId = `rm_btn_${contentId}`;
+    document.getElementById(rmBtnId).addEventListener("click", (event) => {
+        event.stopPropagation();
+        removeContent(contentId);
+    });
 }
 
-function updateContent(content) {
-    const contentId = content.eventId;
+function listenAddEvent(contentId) {
+    const addBtnId = `add_btn_${contentId}`;
+    const addMenuId = `add_menu_${contentId}`;
+    const addMenu = document.getElementById(addMenuId);
 
-    var newContent = document.createElement('div');
-    newContent.classList.add("table-cell");
-    newContent.id = `ctx_${contentId}`;
+    document.getElementById(addBtnId).addEventListener("click", (event) => {
+        event.stopPropagation();
+        addMenu.classList.toggle("show");
+    });
 
-    // add screenshot
+    document.addEventListener("click", () => {
+        if (addMenu.classList.contains("show")) {
+            addMenu.classList.toggle("show");
+        }
+    });
+}
+
+function getScreenshot(content) {
     var cellImg = document.createElement('div');
     cellImg.classList.add("cell-image");
     if (content.hasOwnProperty("screenshot")) {
@@ -76,9 +77,10 @@ function updateContent(content) {
         ctnImg.height = "100%";
         cellImg.appendChild(ctnImg);
     }
-    newContent.appendChild(cellImg);
+    return cellImg;
+}
 
-    // event info
+function getEventInfo(content) {
     var cellInfo = document.createElement('div');
     cellInfo.classList.add("cell-text");
     cellInfo.innerHTML = `<b>${content.type}</b>`;
@@ -87,8 +89,10 @@ function updateContent(content) {
     } else if (content.hasOwnProperty("navUrl")) {
         cellInfo.innerHTML += `<br><div class="content-url" title="${content.navUrl}">"${content.navUrl}"</div>`;
     }
-    newContent.appendChild(cellInfo);
+    return cellInfo;
+}
 
+function getBtn(contentId, needRm = true) {
     // button
     var cellBtn = document.createElement('div');
     cellBtn.classList.add("table-remove");
@@ -98,22 +102,84 @@ function updateContent(content) {
     ctnBtn.classList.add("content-button-container");
 
     // remove button
-    const rmBtnId = `rm_btn_${contentId}`;
-    var rmBtn = document.createElement('i');
-    rmBtn.classList.add("remove-button", "fas", "fa-trash-alt", "selected");
-    rmBtn.id = rmBtnId;
+    if (needRm) {
+        const rmBtnId = `rm_btn_${contentId}`;
+        var rmBtn = document.createElement('i');
+        rmBtn.classList.add("remove-button", "fas", "fa-trash-alt", "selected");
+        rmBtn.id = rmBtnId;
+        ctnBtn.appendChild(rmBtn);
+    }
 
     // add button
     const addBtnId = `add_btn_${contentId}`;
     var addBtn = document.createElement('i');
     addBtn.classList.add("add-button", "fas", "fa-plus", "selected");
     addBtn.id = addBtnId;
-
-    ctnBtn.appendChild(rmBtn);
     ctnBtn.appendChild(addBtn);
 
     cellBtn.appendChild(ctnBtn);
+    return cellBtn;
+}
+
+function getAddMenu(contentId) {
+    const addMenuId = `add_menu_${contentId}`;
+    var addMenu = document.createElement('div');
+    addMenu.classList.add("add-menu");
+    addMenu.id = addMenuId;
+
+    var loginItem = document.createElement('div');
+    loginItem.classList.add("add-menu-item")
+    loginItem.innerHTML = "Login";
+    loginItem.addEventListener("click", (event) => {
+        addContent(contentId, "Login");
+    });
+
+    var verificationItem = document.createElement('div');
+    verificationItem.classList.add("add-menu-item")
+    verificationItem.innerHTML = "Verification";
+    verificationItem.addEventListener("click", (event) => {
+        addContent(contentId, "Verification");
+    });
+
+    addMenu.appendChild(loginItem);
+    addMenu.appendChild(verificationItem);
+
+    return addMenu;
+}
+
+function lengthControl(str, len) {
+    if (str.length > len) {
+        return str.substring(0, len - 3) + "...";
+    }
+    return str;
+}
+
+function commonContent(content, contentId) {
+    var newContent = document.createElement('div');
+    newContent.classList.add("table-cell");
+    newContent.id = `ctx_${contentId}`;
+
+    // add screenshot
+    const cellImg = getScreenshot(content);
+    newContent.appendChild(cellImg);
+
+    // event info
+    const cellInfo = getEventInfo(content);
+    newContent.appendChild(cellInfo);
+
+    // button
+    const cellBtn = getBtn(contentId);
+    const addMenu = getAddMenu(contentId);
+
     newContent.appendChild(cellBtn);
+    newContent.appendChild(addMenu);
+
+    return newContent;
+}
+
+function updateContent(content) {
+    const contentId = content.eventId;
+    const newContent = commonContent(content, contentId);
 
     // add blank line
     var cellHr = document.createElement('hr');
@@ -123,63 +189,35 @@ function updateContent(content) {
     document.getElementById(tableId).appendChild(cellHr);
 
     sleep(300).then(() => {
-        document.getElementById(rmBtnId).addEventListener("click", (event) => removeContent(contentId));
-        document.getElementById(addBtnId).addEventListener("click", (event) => addContent(contentId));
+        listenRmEvent(contentId);
+        listenAddEvent(contentId);
     });
 }
 
-function addContent(lastContentId) {
-    const lastHrId = `ctx_hr_${lastContentId}`;
+function addContent(lastContentId, contentType) {
     const contentId = objId--;
 
-    var newContent = document.createElement('div');
-    newContent.classList.add("table-cell");
-    newContent.id = `ctx_${contentId}`;
+    const content = {
+        eventId: contentId,
+        lastContentId: lastContentId,
+        type: contentType
+    };
 
-    // add screenshot
-    var cellImg = document.createElement('div');
-    cellImg.classList.add("cell-image");
-    newContent.appendChild(cellImg);
+    chrome.runtime.sendMessage({
+        type: "bgInsert",
+        content: content
+    });
 
-    // event info
-    var cellInfo = document.createElement('div');
-    cellInfo.classList.add("cell-text");
-    newContent.appendChild(cellInfo);
-    
-    // button
-    var cellBtn = document.createElement('div');
-    cellBtn.classList.add("table-remove");
-
-    // button container
-    var ctnBtn = document.createElement('div');
-    ctnBtn.classList.add("content-button-container");
-
-    // remove button
-    const rmBtnId = `rm_btn_${contentId}`;
-    var rmBtn = document.createElement('i');
-    rmBtn.classList.add("remove-button", "fas", "fa-trash-alt", "selected");
-    rmBtn.id = rmBtnId;
-
-    // add button
-    const addBtnId = `add_btn_${contentId}`;
-    var addBtn = document.createElement('i');
-    addBtn.classList.add("add-button", "fas", "fa-plus", "selected");
-    addBtn.id = addBtnId;
-
-    ctnBtn.appendChild(rmBtn);
-    ctnBtn.appendChild(addBtn);
-
-    cellBtn.appendChild(ctnBtn);
-    newContent.appendChild(cellBtn);
-
-    // add blank line
+    const newContent = commonContent(content, contentId);
     var cellHr = document.createElement('hr');
     cellHr.id = `ctx_hr_${contentId}`;
-    
+
+    const lastHrId = `ctx_hr_${lastContentId}`;
     document.getElementById(lastHrId).after(newContent, cellHr);
+
     sleep(300).then(() => {
-        document.getElementById(rmBtnId).addEventListener("click", (event) => removeContent(contentId));
-        document.getElementById(addBtnId).addEventListener("click", (event) => addContent(contentId));
+        listenRmEvent(contentId);
+        listenAddEvent(contentId);
     });
 }
 

@@ -5,9 +5,15 @@ try {
     console.log(e);
 }
 
+// Init event
+const baseEvent = {
+    id: -1,
+    object: null
+};
+
 // Record data
 let timestamp = '--NO-TIMESTAMP--';
-let eventArray = [];
+let eventArray = [baseEvent];
 let webID = "0";
 let taskID = "0";
 let nowStatus = 0;
@@ -34,7 +40,10 @@ chrome.runtime.onInstalled.addListener(() => {
 
 function updateEventArray(obj) {
     obj.eventId = objId;
-    eventArray.push(obj);
+    eventArray.push({
+        id: objId,
+        object: obj
+    });
     objId++;
 }
 // Listen navigation events
@@ -103,8 +112,30 @@ function updateContent(content, type = "spUpdate") {
     });
 }
 
+function insertContent(content) {
+    const contentId = content.eventId;
+    const lastContentId = content.lastContentId;
+
+    var pos = 0;
+    while (pos < eventArray.length && eventArray[pos].id !== lastContentId) pos++;
+
+    if (pos < eventArray.length)
+        content.url = eventArray[pos].url;
+
+    eventArray.splice(pos + 1, 0, {
+        id: contentId,
+        object: content
+    });
+}
+
 function removeContent(contentId) {
-    eventArray[contentId] = null;
+    console.log(`Removing content ${contentId}`);
+    for (var i = 0; i < eventArray.length; i++) {
+        if (eventArray[i].id == contentId) {
+            eventArray[i].object = null;
+            return;
+        }
+    }
 }
 
 async function handleEvent(obj) {
@@ -119,21 +150,24 @@ async function handleEvent(obj) {
         type: "undefined"
     };
 
-    if (eventArray.length)
-        lastObj = eventArray[eventArray.length - 1];
-
-    // remove duplicate events
-    if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type) {
-        if (Math.abs(obj.windowView.x - lastEventPosX) * 3 < windowSizeX &&
-            Math.abs(obj.windowView.y - lastEventPosY) * 3 < windowSizeY)
-            return;
+    if (eventArray.length) {
+        lastObj = eventArray[eventArray.length - 1].object;
     }
 
-    if (eType == "resize" && eType == lastObj.type) {
-        windowSizeX = obj.windowSize.x;
-        windowSizeY = obj.windowSize.y;
-        eventArray.pop();
-        objId--;
+    // remove duplicate events
+    if (!(lastObj == undefined)) {
+        if (eType == "scrollend" && url == lastObj.url && eType == lastObj.type) {
+            if (Math.abs(obj.windowView.x - lastEventPosX) * 3 < windowSizeX &&
+                Math.abs(obj.windowView.y - lastEventPosY) * 3 < windowSizeY)
+                return;
+        }
+
+        if (eType == "resize" && eType == lastObj.type) {
+            windowSizeX = obj.windowSize.x;
+            windowSizeY = obj.windowSize.y;
+            eventArray.pop();
+            objId--;
+        }
     }
 
     // add screenshot
@@ -158,7 +192,7 @@ async function handleEvent(obj) {
     // display events in console
     if (eType == "resize") return;
 
-    if (lastObj.type == "resize") {
+    if (!(lastObj == undefined) && lastObj.type == "resize") {
         console.log(lastObj);
         updateContent(lastObj);
     }
@@ -175,8 +209,8 @@ async function handleEvent(obj) {
 function saveAsFile(target, webId, taskId) {
     var newArray = [];
     for (var i = 0; i < eventArray.length; i++) {
-        if (eventArray[i] != null) {
-            newArray.push(eventArray[i]);
+        if (eventArray[i].object != null) {
+            newArray.push(eventArray[i].object);
         }
     };
 
@@ -240,7 +274,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "startRecording":
             // update timestamp if it's a new recording
             timestamp = getTimeStamp();
-            eventArray = [];
+            eventArray = [baseEvent];
             objId = 0;
             updateContent({}, "spClear");
         case "continueRecording":
@@ -277,7 +311,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.log(`Web ID: ${webID}`);
             saveToStorage("webID", webID);
             break;
-        
+
         case "updateTaskID":
             taskID = message.text;
             console.log(`Task ID: ${taskID}`);
@@ -290,6 +324,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         case "videoCapture":
             console.log(`Video capture started, stream id: ${message.streamId}`);
+            break;
+
+        case "bgInsert":
+            insertContent(message.content)
             break;
 
         case "bgRemove":

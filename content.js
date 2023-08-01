@@ -207,7 +207,7 @@ function processHoverEvent(event) {
         obj.text = obj.text.trim();
 
     // only record a or span
-    if (!(obj.tagName == 'a' || obj.tagName == 'span')) return;
+    if (!(obj.tagName == 'a' || obj.tagName == 'span' || obj.tagName == 'button')) return;
 
     chrome.runtime.sendMessage({
         type: 'event',

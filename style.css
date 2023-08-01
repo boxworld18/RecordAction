@@ -69,27 +69,22 @@
 }
 
 .header {
-    width: 100%;
     background-color: #333;
     color: #fff;
     padding: 10px;
-    padding-left: 0px;
     text-align: center;
     flex-shrink: 0;
 }
 
 #web_info {
-    padding-top: 20px;
-    padding-left: 0;
-    padding-right: 20px;
     text-align: left;
+    margin-top: 10px;
 }
 
 #task_info {
     text-align: left;
-    min-width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    min-width: 90vw;
+    margin-top: 10px;
 }
 
 .content {
@@ -147,9 +142,45 @@
 }
 
 .content-button-container>*:not(:last-child) {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 #hr {
     color: #555;
+}
+
+.add-menu {
+    position: absolute;
+    width: 100px;
+    margin-top: 0.3rem;
+    background: white;
+    transition: all 0.1s cubic-bezier(0.16, 1, 0.5, 1);
+
+    transform: translateY(0.5rem);
+    visibility: hidden;
+    opacity: 0;
+
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 10px 0px,
+        rgba(0, 0, 0, 0.1) 0px 0px 0px 1px;
+}
+
+.show {
+    transform: translateY(0rem);
+    visibility: visible;
+    opacity: 1;
+}
+
+.add-menu-item {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    color: black;
+}
+
+.add-menu-item:hover {
+    background-color: #166e67;
+    color: white;
 }
