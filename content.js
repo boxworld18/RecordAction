@@ -81,7 +81,24 @@ function commonInfo(event) {
     obj.bounding = event.target.getBoundingClientRect();
     
     obj.html = document.documentElement.outerHTML;
+    obj.elementPosNSize = getAllElePosNSize(document.body);
+
     return obj;
+}
+
+function getAllElePosNSize(node) {
+    record = {};
+    if (node.nodeType == Node.ELEMENT_NODE) {
+        path = getXPath(node);
+        data = node.getBoundingClientRect();
+        if (data.x != 0 || data.y != 0 || data.width != 0 || data.height != 0) {
+            record[path] = data;
+        }
+    }
+    for (let i = 0; i < node.childNodes.length; i++) {
+        record = Object.assign(record, getAllElePosNSize(node.childNodes[i]));
+    }
+    return record;
 }
 
 function processClickEvent(event) {
