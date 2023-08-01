@@ -73,15 +73,23 @@
     background-color: #333;
     color: #fff;
     padding: 10px;
+    padding-left: 0px;
     text-align: center;
     flex-shrink: 0;
 }
 
-#web_info, #task_info {
+#web_info {
     padding-top: 20px;
     padding-left: 0;
     padding-right: 20px;
     text-align: left;
+}
+
+#task_info {
+    text-align: left;
+    min-width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .content {

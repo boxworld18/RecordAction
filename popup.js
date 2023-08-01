@@ -101,7 +101,7 @@ saveIcon.addEventListener("click", () => {
     if (!isRunning) {
         chrome.runtime.sendMessage({
             type: "save",
-            target: task_info.innerHTML,
+            target: task_info.value,
             webId: web_id.value,
             taskId: task_id.value
         });
@@ -224,7 +224,7 @@ task_id.addEventListener('change', () => {
         console.log(data);
 
         // update task info
-        task_info.innerHTML = data.query;
+        task_info.value = data.query;
     });
     
 });
