@@ -128,6 +128,18 @@ function insertContent(content) {
     });
 }
 
+function updateEvent(content) {
+    const contentId = content.eventId;
+    for (var i = 0; i < eventArray.length; i++) {
+        if (eventArray[i].id == contentId) {
+            eventArray[i].object = content;
+            console.log(`Updating content ${contentId} with text:`);
+            console.log(content);
+            return;
+        }
+    }
+}
+
 function removeContent(contentId) {
     console.log(`Removing content ${contentId}`);
     for (var i = 0; i < eventArray.length; i++) {
@@ -327,11 +339,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
 
         case "bgInsert":
-            insertContent(message.content)
+            insertContent(message.content);
+            break;
+
+        case "bgUpdate":
+            updateEvent(message.content);
             break;
 
         case "bgRemove":
-            removeContent(message.content)
+            removeContent(message.content);
             break;
 
         default:

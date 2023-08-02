@@ -31,7 +31,6 @@ function resetTable() {
 
     header.appendChild(hdrBtn);
     header.appendChild(addMenu);
-    // document.getElementById("panel-content").appendChild(addMenu);
 
     const hdrHr = document.createElement('hr');
     hdrHr.id = `ctx_hr_${contentId}`;
@@ -84,12 +83,45 @@ function getScreenshot(content) {
 function getEventInfo(content) {
     var cellInfo = document.createElement('div');
     cellInfo.classList.add("cell-text");
-    cellInfo.innerHTML = `<b>${content.type}</b>`;
+
+    var cellB = document.createElement('b');
+    cellB.innerHTML = content.type;
+    cellInfo.appendChild(cellB);
+
     if (content.hasOwnProperty("text")) {
-        cellInfo.innerHTML += `<br>elem "${lengthControl(content.text, 20)}"`;
+        cellInfo.appendChild(document.createElement('br'));
+        cellInfo.appendChild(document.createTextNode(`elem "${lengthControl(content.text, 20)}"`));
     } else if (content.hasOwnProperty("navUrl")) {
-        cellInfo.innerHTML += `<br><div class="content-url" title="${content.navUrl}">"${content.navUrl}"</div>`;
+        cellInfo.appendChild(document.createElement('br'));
+        var cellText = document.createElement('div');
+        cellText.classList.add("content-url");
+        cellText.title = content.navUrl;
+        cellText.innerHTML = `"${lengthControl(content.navUrl, 20)}"`;
+        cellInfo.appendChild(cellText);
     }
+
+    if (content.type == "Answer") {
+        cellInfo.appendChild(document.createElement('br'));
+        var input = document.createElement('textarea');
+        input.classList.add("content-input");
+        input.type = "text";
+        input.placeholder = "Answer";
+        input.rows = 2;
+        input.addEventListener("change", (event) => {
+            var text = input.value;
+            chrome.runtime.sendMessage({
+                type: "bgUpdate",
+                content: {
+                    eventId: content.eventId,
+                    type: "Answer",
+                    answer: text
+                }
+            });
+        });
+
+        cellInfo.appendChild(input);
+    }
+
     return cellInfo;
 }
 
@@ -122,28 +154,29 @@ function getBtn(contentId, needRm = true) {
     return cellBtn;
 }
 
+function getMenuItem(contentId, menuName) {
+    var menuItem = document.createElement('div');
+    menuItem.classList.add("add-menu-item")
+    menuItem.innerHTML = menuName;
+    menuItem.addEventListener("click", (event) => {
+        addContent(contentId, menuName);
+    });
+    return menuItem;
+}
+
 function getAddMenu(contentId) {
     const addMenuId = `add_menu_${contentId}`;
     var addMenu = document.createElement('div');
     addMenu.classList.add("add-menu");
     addMenu.id = addMenuId;
 
-    var loginItem = document.createElement('div');
-    loginItem.classList.add("add-menu-item")
-    loginItem.innerHTML = "Login";
-    loginItem.addEventListener("click", (event) => {
-        addContent(contentId, "Login");
-    });
-
-    var verificationItem = document.createElement('div');
-    verificationItem.classList.add("add-menu-item")
-    verificationItem.innerHTML = "Verification";
-    verificationItem.addEventListener("click", (event) => {
-        addContent(contentId, "Verification");
-    });
+    const loginItem = getMenuItem(contentId, "Login");
+    const verificationItem = getMenuItem(contentId, "Verification");
+    const answerItem = getMenuItem(contentId, "Answer");
 
     addMenu.appendChild(loginItem);
     addMenu.appendChild(verificationItem);
+    addMenu.appendChild(answerItem);
 
     return addMenu;
 }
@@ -174,7 +207,6 @@ function commonContent(content, contentId) {
 
     newContent.appendChild(cellBtn);
     newContent.appendChild(addMenu);
-    // document.getElementById("panel-content").appendChild(addMenu);
 
     return newContent;
 }
