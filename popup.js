@@ -183,7 +183,7 @@ web_id.addEventListener('change', () => {
         data = result;
 
         // update web info
-        web_info.innerHTML = data.purpose;
+        web_info.innerHTML = data.purpose.substring(0, 200) + (data.purpose.length > 200? "......": "");
 
         // jump to new website
         console.log(data.url);
