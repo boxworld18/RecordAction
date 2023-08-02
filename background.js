@@ -51,6 +51,14 @@ chrome.webNavigation.onCompleted.addListener((details) => {
     if (nowStatus == 1 && details.frameId == 0) {
         console.log(details);
 
+        var lastObj = getLastElement();
+
+        // remove user click events
+        if (!(lastObj == undefined)) {
+            if (lastObj.type == "click" && lastObj.tagName == "a")
+                return;
+        }
+
         let obj = {
             type: "navigation",
             navUrl: details.url
@@ -150,6 +158,17 @@ function removeContent(contentId) {
     }
 }
 
+function getLastElement() {
+    var obj = {
+        type: "undefined"
+    };
+
+    if (eventArray.length)
+        obj = eventArray[eventArray.length - 1].object;
+
+    return obj;
+}
+
 async function handleEvent(obj) {
     const url = obj.url;
     const eType = obj.type;
@@ -158,13 +177,7 @@ async function handleEvent(obj) {
     if (!(url == undefined) && getUrlPrefix(url).toLowerCase() == "chrome-extension") return;
 
     // last move
-    var lastObj = {
-        type: "undefined"
-    };
-
-    if (eventArray.length) {
-        lastObj = eventArray[eventArray.length - 1].object;
-    }
+    var lastObj = getLastElement();
 
     // remove duplicate events
     if (!(lastObj == undefined)) {
