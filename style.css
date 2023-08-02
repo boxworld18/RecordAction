@@ -100,6 +100,7 @@
 .table-cell {
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .cell-image {
@@ -151,8 +152,15 @@
 
 .add-menu {
     position: absolute;
+    display: inline-block;
+    flex-shrink: 0;
+
+    right: 0;
+    top: 20px;
+    z-index: 20;
+
     width: 100px;
-    margin-top: 0.3rem;
+    margin-top: 0.1rem;
     background: white;
     transition: all 0.1s cubic-bezier(0.16, 1, 0.5, 1);
 

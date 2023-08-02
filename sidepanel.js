@@ -31,6 +31,7 @@ function resetTable() {
 
     header.appendChild(hdrBtn);
     header.appendChild(addMenu);
+    // document.getElementById("panel-content").appendChild(addMenu);
 
     const hdrHr = document.createElement('hr');
     hdrHr.id = `ctx_hr_${contentId}`;
@@ -173,6 +174,7 @@ function commonContent(content, contentId) {
 
     newContent.appendChild(cellBtn);
     newContent.appendChild(addMenu);
+    // document.getElementById("panel-content").appendChild(addMenu);
 
     return newContent;
 }
