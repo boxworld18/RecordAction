@@ -88,10 +88,14 @@ function getEventInfo(content) {
     cellB.innerHTML = content.type;
     cellInfo.appendChild(cellB);
 
+    // for click event
     if (content.hasOwnProperty("text")) {
         cellInfo.appendChild(document.createElement('br'));
         cellInfo.appendChild(document.createTextNode(`elem "${lengthControl(content.text, 20)}"`));
-    } else if (content.hasOwnProperty("navUrl")) {
+    }
+    
+    // for navigation event
+    if (content.hasOwnProperty("navUrl")) {
         cellInfo.appendChild(document.createElement('br'));
         var cellText = document.createElement('div');
         cellText.classList.add("content-url");
@@ -99,22 +103,27 @@ function getEventInfo(content) {
         cellText.innerHTML = `"${lengthControl(content.navUrl, 20)}"`;
         cellInfo.appendChild(cellText);
     }
-
-    if (content.type == "Answer") {
+    
+    // for input event and answer
+    if (content.type == "answer" || content.type == "change") {
         cellInfo.appendChild(document.createElement('br'));
         var input = document.createElement('textarea');
         input.classList.add("content-input");
         input.type = "text";
-        input.placeholder = "Answer";
+
+        if (content.hasOwnProperty("value")) 
+            input.value = content.value;
+        else
+            input.placeholder = "input...";
+
         input.rows = 2;
         input.addEventListener("change", (event) => {
             var text = input.value;
             chrome.runtime.sendMessage({
-                type: "bgUpdate",
+                type: "bgUpdateValue",
                 content: {
-                    eventId: content.eventId,
-                    type: "Answer",
-                    answer: text
+                    id: content.eventId,
+                    value: text
                 }
             });
         });
@@ -170,13 +179,15 @@ function getAddMenu(contentId) {
     addMenu.classList.add("add-menu");
     addMenu.id = addMenuId;
 
-    const loginItem = getMenuItem(contentId, "Login");
-    const verificationItem = getMenuItem(contentId, "Verification");
-    const answerItem = getMenuItem(contentId, "Answer");
+    const loginItem = getMenuItem(contentId, "login");
+    const verificationItem = getMenuItem(contentId, "verification");
+    const answerItem = getMenuItem(contentId, "answer");
+    const inputItem = getMenuItem(contentId, "change");
 
     addMenu.appendChild(loginItem);
     addMenu.appendChild(verificationItem);
     addMenu.appendChild(answerItem);
+    addMenu.appendChild(inputItem);
 
     return addMenu;
 }

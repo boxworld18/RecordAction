@@ -15,7 +15,7 @@ const task_left = document.querySelector('#task_left');
 const task_right = document.querySelector('#task_right');
 
 
-const maxWebID = 400;
+const maxWebID = 1000;
 const maxTaskID = 50;
 
 let isRunning = false;

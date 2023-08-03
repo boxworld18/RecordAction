@@ -120,15 +120,26 @@ function updateContent(content, type = "spUpdate") {
     });
 }
 
-function insertContent(content) {
-    const contentId = content.eventId;
-    const lastContentId = content.lastContentId;
+function insertContent(rawContent) {
+    const contentId = rawContent.eventId;
+    const lastContentId = rawContent.lastContentId;
 
     var pos = 0;
+    var content = {};
     while (pos < eventArray.length && eventArray[pos].id !== lastContentId) pos++;
 
-    if (pos < eventArray.length)
-        content.url = eventArray[pos].url;
+    if (pos < eventArray.length) {
+        rawContent.url = eventArray[pos].object.url;
+        if (rawContent.type == "change") {
+            content = JSON.parse(JSON.stringify(eventArray[pos].object));
+        }
+    }
+
+    for (var key in rawContent)
+        content[key] = rawContent[key];
+
+    console.log(`Inserting content ${contentId} with text:`);
+    console.log(content);
 
     eventArray.splice(pos + 1, 0, {
         id: contentId,
@@ -136,13 +147,14 @@ function insertContent(content) {
     });
 }
 
-function updateEvent(content) {
-    const contentId = content.eventId;
+function updateValue(content) {
+    const contentId = content.id;
+    const value = content.value;
     for (var i = 0; i < eventArray.length; i++) {
         if (eventArray[i].id == contentId) {
-            eventArray[i].object = content;
+            eventArray[i].object.value = value;
             console.log(`Updating content ${contentId} with text:`);
-            console.log(content);
+            console.log(eventArray[i].object);
             return;
         }
     }
@@ -170,6 +182,8 @@ function getLastElement() {
 }
 
 async function handleEvent(obj) {
+    if (nowStatus !== 1) return;
+
     const url = obj.url;
     const eType = obj.type;
 
@@ -355,8 +369,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             insertContent(message.content);
             break;
 
-        case "bgUpdate":
-            updateEvent(message.content);
+        case "bgUpdateValue":
+            updateValue(message.content);
             break;
 
         case "bgRemove":
