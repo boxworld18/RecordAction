@@ -51,14 +51,6 @@ chrome.webNavigation.onCompleted.addListener((details) => {
     if (nowStatus == 1 && details.frameId == 0) {
         console.log(details);
 
-        var lastObj = getLastElement();
-
-        // remove user click events
-        if (!(lastObj == undefined)) {
-            if (lastObj.type == "click" && lastObj.tagName == "a")
-                return;
-        }
-
         let obj = {
             type: "navigation",
             navUrl: details.url
@@ -150,9 +142,10 @@ function insertContent(rawContent) {
 function updateValue(content) {
     const contentId = content.id;
     const value = content.value;
+    const key = content.key;
     for (var i = 0; i < eventArray.length; i++) {
         if (eventArray[i].id == contentId) {
-            eventArray[i].object.value = value;
+            eventArray[i].object[key] = value;
             console.log(`Updating content ${contentId} with text:`);
             console.log(eventArray[i].object);
             return;

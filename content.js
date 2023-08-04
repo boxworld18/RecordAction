@@ -223,7 +223,7 @@ function setListeners() {
         document.body.addEventListener('change', processChangeEvent);
         document.body.addEventListener('keydown', processKeyEvent);
         document.body.addEventListener('keyup', processKeyEvent);
-        document.body.addEventListener('mouseover', processHoverEvent);
+        // document.body.addEventListener('mouseover', processHoverEvent);
         // document.body.addEventListener('mouseenter', processClickEvent);
         // document.body.addEventListener('mouseleave', processClickEvent);
         // document.addEventListener('scroll', processScrollEvent);
@@ -238,7 +238,7 @@ function removeListeners() {
     document.body.removeEventListener('change', processChangeEvent);
     document.body.removeEventListener('keydown', processKeyEvent);
     document.body.removeEventListener('keyup', processKeyEvent);
-    document.body.removeEventListener('mouseover', processHoverEvent);
+    // document.body.removeEventListener('mouseover', processHoverEvent);
     // document.body.removeEventListener('mouseenter', processClickEvent);
     // document.body.removeEventListener('mouseleave', processClickEvent);
     // document.removeEventListener('scroll', processScrollEvent);

@@ -89,9 +89,24 @@ function getEventInfo(content) {
     cellInfo.appendChild(cellB);
 
     // for click event
-    if (content.hasOwnProperty("text")) {
-        cellInfo.appendChild(document.createElement('br'));
-        cellInfo.appendChild(document.createTextNode(`elem "${lengthControl(content.text, 20)}"`));
+    if (content.type == 'mouseover' || content.type == 'click') {
+        if (content.hasOwnProperty("text")) {
+            cellInfo.appendChild(document.createElement('br'));
+            cellInfo.appendChild(document.createTextNode(`elem "${lengthControl(content.text, 20)}"`));
+        }
+        cellB.addEventListener("click", () => {
+            content.mouseover = content.mouseover? false: true;
+            cellB.innerHTML = content.mouseover? "mouseover": "click";
+            console.log(content.mouseover, cellB.innerHTML);
+            chrome.runtime.sendMessage({
+                type: "bgUpdateValue",
+                content: {
+                    id: content.eventId,
+                    value: cellB.innerHTML,
+                    key: 'type'
+                }
+            });
+        });
     }
     
     // for navigation event
@@ -102,6 +117,20 @@ function getEventInfo(content) {
         cellText.title = content.navUrl;
         cellText.innerHTML = `"${lengthControl(content.navUrl, 20)}"`;
         cellInfo.appendChild(cellText);
+        
+        cellB.innerHTML = 'navigation (auto)'
+        cellB.addEventListener("click", () => {
+            content.manual = content.manual? false: true;
+            cellB.innerHTML = 'navigation ' + (content.manual? "(manual)": "(auto)");
+            chrome.runtime.sendMessage({
+                type: "bgUpdateValue",
+                content: {
+                    id: content.eventId,
+                    value: content.manual,
+                    key: 'isManual'
+                }
+            });
+        });
     }
     
     // for input event and answer
@@ -123,7 +152,8 @@ function getEventInfo(content) {
                 type: "bgUpdateValue",
                 content: {
                     id: content.eventId,
-                    value: text
+                    value: text,
+                    key: 'value'
                 }
             });
         });
