@@ -39,6 +39,7 @@ function updateTabStatus(state) {
 }
 
 startIcon.addEventListener("click", () => {
+    getLocalHints();
     startIcon.style.display = "none";
     pauseIcon.style.display = "inline-block";
 
