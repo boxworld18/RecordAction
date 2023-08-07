@@ -120,11 +120,13 @@ function insertContent(rawContent) {
     var content = {};
     while (pos < eventArray.length && eventArray[pos].id !== lastContentId) pos++;
 
+    const lastObj = eventArray[pos].object;
+
     if (pos < eventArray.length) {
-        rawContent.url = eventArray[pos].object.url;
-        if (rawContent.type == "change") {
-            content = JSON.parse(JSON.stringify(eventArray[pos].object));
-        }
+        if (lastObj.hasOwnProperty("url"))
+            rawContent.url = lastObj.url;
+        if (rawContent.type == "change")
+            content = JSON.parse(JSON.stringify(lastObj));
     }
 
     for (var key in rawContent)

@@ -65,6 +65,10 @@ function basicInfo(event) {
         y: window.scrollY
     };
     obj.url = document.URL;
+    obj.windowSize = {
+        x: window.innerWidth,
+        y: window.innerHeight
+    };
 
     return obj;
 }
@@ -173,6 +177,10 @@ function processNavigateEvent(event) {
     obj.type = event.type;
     obj.url = dst_url;
     obj.html = document.documentElement.outerHTML;
+    obj.windowSize = {
+        x: window.innerWidth,
+        y: window.innerHeight
+    };
 
     chrome.runtime.sendMessage({
         type: 'event',
@@ -184,10 +192,6 @@ function processResizeEvent(event) {
     if (chrome.runtime == undefined) return;
     
     let obj = basicInfo(event);
-    obj.windowSize = {
-        x: window.innerWidth,
-        y: window.innerHeight
-    };
 
     chrome.runtime.sendMessage({
         type: 'event',

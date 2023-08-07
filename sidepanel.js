@@ -88,6 +88,11 @@ function getEventInfo(content) {
     cellB.innerHTML = content.type;
     cellInfo.appendChild(cellB);
 
+    if (content.type == 'keydown') {
+        cellInfo.appendChild(document.createElement('br'));
+        cellInfo.appendChild(document.createTextNode(`key "${content.name}"`));
+    }
+
     // for click event
     if (content.type == 'mouseover' || content.type == 'click') {
         if (content.hasOwnProperty("text")) {
@@ -308,9 +313,10 @@ function removeContent(contentId) {
 }
 
 function updateView() {
-    document.body.scrollIntoView({
+    document.getElementById("last_element").scrollIntoView({
+    // document.body.scrollIntoView({
         behavior: "auto",
-        block: "end"
+        block: "center"
     });
 }
 
