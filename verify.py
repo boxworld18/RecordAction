@@ -9,6 +9,7 @@ import time
 import psutil
 
 ratio = 2
+play_speed = 2
         
 def get_data(data, key):
     if key in data:
@@ -16,7 +17,7 @@ def get_data(data, key):
     return None
 
 def play(webid, taskid):
-
+    global play_speed
     with open(f'answers/{webid}/recact_{taskid}.json', 'r', encoding='utf-8') as f:
         json_data = json.load(f)
 
@@ -53,7 +54,7 @@ def play(webid, taskid):
             plt.imshow(image)
             
             mngr = plt.get_current_fig_manager()
-            plt.pause(2)  # 该句显示图片5秒
+            plt.pause(play_speed)  # 该句显示图片5秒
             plt.ioff()  # 显示完后一定要配合使用plt.ioff()关闭交互模式，否则可能出奇怪的问题
             
             plt.clf()  # 清空图片
@@ -64,6 +65,15 @@ def play(webid, taskid):
 if __name__ == "__main__":
     webid = 0
     taskid = 0
+    print("""使用方法：
+    n：下一网站
+    p：上一网站
+    a：下一任务
+    d：上一任务
+    j：跳转到指定网站和任务
+    r：播放当前网站任务
+    q：退出
+    x：修改播放速度""")
     while True:
         old_webid, old_taskid = webid, taskid
         instruction = input('请输入指令：')
@@ -92,7 +102,8 @@ if __name__ == "__main__":
             webid = _webid
             taskid = _taskid
             print(f'当前网页：{webid}-{taskid}')
-            
+        elif instruction == 'x':
+            play_speed = input('请输入时间间隔(s)：')
         elif instruction == 'r':
             try:
                 play(webid, taskid)
