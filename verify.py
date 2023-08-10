@@ -46,7 +46,9 @@ def play(webid, taskid):
             draw = ImageDraw.Draw(image)
             left_top = (bounds['left'] * ratio, bounds['top'] * ratio)
             right_bottom = (bounds['right'] * ratio, bounds['bottom'] * ratio)
-            draw.rectangle([left_top , right_bottom], outline=(255, 0, 0), width=2, fill=(0, 255, 0))
+            # left_top = (midx - 10, midy - 10)
+            # right_bottom = (midx + 10, midy + 10)
+            draw.rectangle([left_top , right_bottom], outline=(0, 255, 0), width=10)
 
             plt.figure(figsize=(6, 8))
             plt.ion()  # 打开交互模式
