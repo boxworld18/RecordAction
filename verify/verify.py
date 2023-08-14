@@ -18,7 +18,7 @@ def get_data(data, key):
 
 def play(webid, taskid):
     global play_speed
-    with open(f'answers/{webid}/recact_{taskid}.json', 'r', encoding='utf-8') as f:
+    with open(f'../answers/{webid}/recact_{taskid}.json', 'r', encoding='utf-8') as f:
         json_data = json.load(f)
 
     action_list = json_data['action']
@@ -40,7 +40,7 @@ def play(webid, taskid):
         if size == None:
             image = raw_image
         else:
-            image = raw_image.resize((size['x'] * ratio, size['y'] * ratio), Image.ANTIALIAS)
+            image = raw_image.resize((size['x'] * ratio, size['y'] * ratio), Image.LANCZOS)
         
         if bounds != None:
             draw = ImageDraw.Draw(image)
