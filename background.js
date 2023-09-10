@@ -267,7 +267,8 @@ function saveAsFile(target, webId, taskId) {
     const object = {
         target: target,
         action: newArray,
-        timestamp: timestamp
+        timestamp: timestamp,
+        version: "0.3.9",
     }
 
     const jsonse = JSON.stringify(object);
