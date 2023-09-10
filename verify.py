@@ -8,7 +8,7 @@ import json
 import time
 import psutil
 
-ratio = 2
+ratio = 3
         
 def get_data(data, key):
     if key in data:
@@ -20,11 +20,18 @@ def play(webid, taskid):
     with open(f'answers/{webid}/recact_{taskid}.json', 'r', encoding='utf-8') as f:
         json_data = json.load(f)
 
+    print(json_data['target'])
     action_list = json_data['action']
 
     for action in action_list:
         img = get_data(action, 'screenshot')
         ty = get_data(action, 'type')
+        
+        print(ty)
+        if ty == 'answer' or ty == 'change':
+            input = get_data(action, 'value')
+            print(input)
+            
         bounds = get_data(action, 'bounding')
         size = get_data(action, 'windowSize')
 
@@ -37,7 +44,7 @@ def play(webid, taskid):
         raw_image = Image.open(image_stream)
         
         if size == None:
-            image = raw_image
+            image = raw_image.resize((1180 * ratio, 730 * ratio), Image.ANTIALIAS)
         else:
             image = raw_image.resize((size['x'] * ratio, size['y'] * ratio), Image.ANTIALIAS)
         
@@ -45,19 +52,19 @@ def play(webid, taskid):
             draw = ImageDraw.Draw(image)
             left_top = (bounds['left'] * ratio, bounds['top'] * ratio)
             right_bottom = (bounds['right'] * ratio, bounds['bottom'] * ratio)
-            draw.rectangle([left_top , right_bottom], outline=(255, 0, 0), width=2, fill=(0, 255, 0))
+            draw.rectangle([left_top , right_bottom], outline=(255, 0, 0), width=2, fill=None)
 
-            plt.figure(figsize=(6, 8))
-            plt.ion()  # 打开交互模式
-            plt.axis('off')  # 不需要坐标轴
-            plt.imshow(image)
-            
-            mngr = plt.get_current_fig_manager()
-            plt.pause(2)  # 该句显示图片5秒
-            plt.ioff()  # 显示完后一定要配合使用plt.ioff()关闭交互模式，否则可能出奇怪的问题
-            
-            plt.clf()  # 清空图片
-            plt.close()  # 清空窗口
+        plt.figure(figsize=(6, 8))
+        plt.ion()  # 打开交互模式
+        plt.axis('off')  # 不需要坐标轴
+        plt.imshow(image)
+        
+        mngr = plt.get_current_fig_manager()
+        plt.pause(2)  # 该句显示图片5秒
+        plt.ioff()  # 显示完后一定要配合使用plt.ioff()关闭交互模式，否则可能出奇怪的问题
+        
+        plt.clf()  # 清空图片
+        plt.close()  # 清空窗口
 
 
     
