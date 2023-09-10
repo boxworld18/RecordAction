@@ -46,6 +46,20 @@ function updateEventArray(obj) {
     });
     objId++;
 }
+
+function captureCurrentStatus(obj) {
+    chrome.tabs.query({
+        active: true
+    }, (tabs) => {
+        tabs.forEach((tab) => {
+            chrome.tabs.sendMessage(tab.id, {
+                type: "captureStatus",
+                event: obj
+            });
+        });
+    });
+}
+
 // Listen navigation events
 chrome.webNavigation.onCompleted.addListener((details) => {
     if (nowStatus == 1 && details.frameId == 0) {
@@ -56,17 +70,19 @@ chrome.webNavigation.onCompleted.addListener((details) => {
             navUrl: details.url
         };
 
-        const waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 1);
+        captureCurrentStatus(obj);
 
-        sleep(waitTime).then(chrome.tabs.captureVisibleTab((dataUri) => {
-            obj.screenshot = dataUri;
-        }));
+        // const waitTime = Math.max(captureInterval - (Date.now() - lastCapture), 1);
 
-        sleep(1000).then(() => {
-            updateEventArray(obj);
-            console.log(obj);
-            updateContent(obj);
-        });
+        // sleep(waitTime).then(chrome.tabs.captureVisibleTab((dataUri) => {
+        //     obj.screenshot = dataUri;
+        // }));
+
+        // sleep(1000).then(() => {
+        //     updateEventArray(obj);
+        //     console.log(obj);
+        //     updateContent(obj);
+        // });
     }
 });
 

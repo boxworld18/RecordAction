@@ -60,6 +60,9 @@ function getXPath(element) {
 function basicInfo(event) {
     let obj = {};
     obj.type = event.type;
+    if (event.hasOwnProperty('navUrl')) {
+        obj.navUrl = event.navUrl;
+    }
     obj.windowView = {
         x: window.scrollX,
         y: window.scrollY
@@ -69,7 +72,8 @@ function basicInfo(event) {
         x: window.innerWidth,
         y: window.innerHeight
     };
-
+    obj.html = document.documentElement.outerHTML;
+    obj.elementPosNSize = getAllElePosNSize(document.body);
     return obj;
 }
 
@@ -83,10 +87,6 @@ function commonInfo(event) {
         y: event.clientY
     };
     obj.bounding = event.target.getBoundingClientRect();
-    
-    obj.html = document.documentElement.outerHTML;
-    obj.elementPosNSize = getAllElePosNSize(document.body);
-
     return obj;
 }
 
@@ -254,12 +254,23 @@ function removeListeners() {
 // Listen for messages from the extension
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
-        if (message.type == 'updateStatus') {
-            if (message.status == 1)
-                setListeners();
-            else
-                removeListeners();
-            console.log(message.status);
+        switch (message.type) {
+            case 'updateStatus':
+                if (message.status == 1)
+                    setListeners();
+                else
+                    removeListeners();
+                console.log(message.status);
+                break;
+            case 'captureStatus':
+                obj = basicInfo(message.event);
+                chrome.runtime.sendMessage({
+                    type: 'event',
+                    event: obj
+                });
+                break;
+            default:
+                break;
         }
         return true;
     }

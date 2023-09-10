@@ -15,7 +15,7 @@ const task_left = document.querySelector('#task_left');
 const task_right = document.querySelector('#task_right');
 
 
-const maxWebID = 1000;
+const maxWebID = 50000;
 const maxTaskID = 50;
 
 let isRunning = false;
@@ -38,6 +38,19 @@ function updateTabStatus(state) {
     });
 }
 
+function captureCurrentStatus(obj) {
+    chrome.tabs.query({
+        active: true
+    }, (tabs) => {
+        tabs.forEach((tab) => {
+            chrome.tabs.sendMessage(tab.id, {
+                type: "captureStatus",
+                event: obj
+            });
+        });
+    });
+}
+
 startIcon.addEventListener("click", () => {
     startIcon.style.display = "none";
     pauseIcon.style.display = "inline-block";
@@ -53,6 +66,9 @@ startIcon.addEventListener("click", () => {
             type: "startRecording"
         });
         isRunning = true;
+        captureCurrentStatus({
+            type: "pageinit"
+        });
     } else {
         chrome.runtime.sendMessage({
             type: "continueRecording"
@@ -110,9 +126,12 @@ saveIcon.addEventListener("click", () => {
 
 cameraIcon.addEventListener("click", () => {
     if (cameraIcon.classList.contains("disabled")) return;
-    chrome.runtime.sendMessage({
-        type: "capture"
+    captureCurrentStatus({
+        type: "pageinit"
     });
+    // chrome.runtime.sendMessage({
+    //     type: "capture"
+    // });
 });
 
 videoIcon.addEventListener("click", () => {
